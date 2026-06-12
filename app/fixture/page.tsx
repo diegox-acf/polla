@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
 import { Mascotas } from "@/components/mascotas";
 import { db } from "@/lib/db";
@@ -326,14 +327,6 @@ function TeamSide({ team, align = "left" }: { team?: Team; align?: "left" | "rig
 }
 
 const STATUS_BADGES: Partial<Record<Match["status"], { label: string; className: string }>> = {
-  in_play: {
-    label: "● En juego",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  },
-  paused: {
-    label: "Entretiempo",
-    className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
-  },
   finished: {
     label: "Final",
     className: "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
@@ -353,6 +346,14 @@ const STATUS_BADGES: Partial<Record<Match["status"], { label: string; className:
 };
 
 function StatusBadge({ status }: { status: Match["status"] }) {
+  if (status === "in_play" || status === "paused") {
+    return (
+      <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/60 dark:text-red-300">
+        <LiveDot />
+        {status === "in_play" ? "En vivo" : "Entretiempo"}
+      </span>
+    );
+  }
   const badge = STATUS_BADGES[status];
   if (!badge) return null; // scheduled: sin badge, la hora basta
   return (

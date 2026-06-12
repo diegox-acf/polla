@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
 import { db } from "@/lib/db";
 import { matches, predictions, teams } from "@/lib/db/schema";
@@ -103,9 +104,10 @@ export default async function PartidoPage({
             {match.group ? groupLabel(match.group) : stageLabel(match.stage)}
           </span>
           <span className="flex items-center gap-2">
-            {match.status === "in_play" && (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-                ● En juego
+            {(match.status === "in_play" || match.status === "paused") && (
+              <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/60 dark:text-red-300">
+                <LiveDot />
+                {match.status === "in_play" ? "En vivo" : "Entretiempo"}
               </span>
             )}
             {match.status === "finished" && (

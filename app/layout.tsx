@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { inArray } from "drizzle-orm";
 import Link from "next/link";
 import { auth } from "@/auth";
+import { LiveDot } from "@/components/live-dot";
 import { NavLink } from "@/components/nav-link";
+import { db } from "@/lib/db";
+import { matches } from "@/lib/db/schema";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
 import "./globals.css";
 
@@ -28,6 +32,15 @@ export default async function RootLayout({
 }>) {
   const session = await auth();
 
+  // Partidos en vivo para el indicador global del header
+  const liveMatches = session?.user
+    ? await db.query.matches.findMany({
+        where: inArray(matches.status, ["in_play", "paused"]),
+        columns: { id: true },
+      })
+    : [];
+  const liveHref = liveMatches.length === 1 ? `/partido/${liveMatches[0].id}` : "/fixture";
+
   return (
     <html
       lang="es"
@@ -49,6 +62,21 @@ export default async function RootLayout({
             </Link>
             {session?.user && (
               <div className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                {liveMatches.length > 0 && (
+                  <Link
+                    href={liveHref}
+                    title={
+                      liveMatches.length === 1
+                        ? "Hay un partido en vivo"
+                        : `Hay ${liveMatches.length} partidos en vivo`
+                    }
+                    className="mr-1 flex shrink-0 items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700 transition-colors hover:bg-red-200 dark:bg-red-900/60 dark:text-red-300 dark:hover:bg-red-900"
+                  >
+                    <LiveDot />
+                    EN VIVO
+                    {liveMatches.length > 1 && <span>({liveMatches.length})</span>}
+                  </Link>
+                )}
                 <nav className="flex items-center gap-1 overflow-x-auto">
                   <NavLink href="/fixture">Fixture</NavLink>
                   <NavLink href="/grupos">Grupos</NavLink>
