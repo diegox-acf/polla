@@ -1,9 +1,15 @@
+import { asc, ne } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { Mascotas } from "@/components/mascotas";
+import { db } from "@/lib/db";
+import { matches, teams } from "@/lib/db/schema";
 import { fetchWorldCupStandings, type FdStanding } from "@/lib/football-data";
-import { groupLabel } from "@/lib/stages";
+import { groupLabel, stageShortLabel } from "@/lib/stages";
+
+type Match = typeof matches.$inferSelect;
+type Team = typeof teams.$inferSelect;
 
 export const metadata = { title: "Grupos — Polla Mundial 2026" };
 
@@ -17,6 +23,25 @@ export default async function GruposPage() {
   } catch {
     // API caída: la página degrada con un mensaje, no revienta
   }
+
+  // Cuadro de eliminatorias desde nuestra DB (sin llamadas extra a la API)
+  const [koMatches, allTeams] = await Promise.all([
+    db.query.matches.findMany({
+      where: ne(matches.stage, "GROUP_STAGE"),
+      orderBy: [asc(matches.kickoff), asc(matches.id)],
+    }),
+    db.query.teams.findMany(),
+  ]);
+  const teamById = new Map(allTeams.map((t) => [t.id, t]));
+
+  const rounds: { stage: string; label: string; matches: Match[] }[] = [];
+  for (const match of koMatches) {
+    const existing = rounds.find((r) => r.stage === match.stage);
+    if (existing) existing.matches.push(match);
+    else rounds.push({ stage: match.stage, label: stageShortLabel(match.stage), matches: [match] });
+  }
+  const thirdPlace = rounds.find((r) => r.stage === "THIRD_PLACE")?.matches[0];
+  const bracketRounds = rounds.filter((r) => r.stage !== "THIRD_PLACE");
 
   // fetchWorldCupStandings ya filtra a tablas TOTAL con grupo
   const groups = standings ?? [];
@@ -112,6 +137,101 @@ export default async function GruposPage() {
           Sombreado = puestos de clasificación directa (los mejores terceros también avanzan).
         </p>
       )}
+
+      {/* ---- Cuadro de eliminatorias ---- */}
+      {bracketRounds.length > 0 && (
+        <section className="mt-12">
+          <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
+            Cuadro de eliminatorias
+          </h2>
+          <div className="-mx-4 mt-3 overflow-x-auto px-4 pb-2">
+            <div className="flex items-stretch gap-4">
+              {bracketRounds.map((round) => (
+                <div key={round.stage} className="flex flex-col">
+                  <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                    {round.label}
+                  </p>
+                  <div className="flex flex-1 flex-col justify-around gap-2">
+                    {round.matches.map((match) => (
+                      <BracketCard key={match.id} match={match} teamById={teamById} />
+                    ))}
+                    {round.stage === "FINAL" && thirdPlace && (
+                      <BracketCard match={thirdPlace} teamById={teamById} label="3er puesto" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-zinc-400">
+            Los cruces se completan a medida que avanza el torneo. Toca un partido para verlo.
+          </p>
+        </section>
+      )}
     </main>
+  );
+}
+
+function BracketCard({
+  match,
+  teamById,
+  label,
+}: {
+  match: Match;
+  teamById: Map<number, Team>;
+  label?: string;
+}) {
+  const home = match.homeTeamId !== null ? teamById.get(match.homeTeamId) : undefined;
+  const away = match.awayTeamId !== null ? teamById.get(match.awayTeamId) : undefined;
+  return (
+    <Link
+      href={`/partido/${match.id}`}
+      className="block w-44 shrink-0 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition-colors hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
+    >
+      {label && (
+        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+          {label}
+        </p>
+      )}
+      <BracketTeam
+        team={home}
+        score={match.homeScore90}
+        advancing={home !== undefined && match.advancingTeamId === home.id}
+      />
+      <BracketTeam
+        team={away}
+        score={match.awayScore90}
+        advancing={away !== undefined && match.advancingTeamId === away.id}
+      />
+    </Link>
+  );
+}
+
+function BracketTeam({
+  team,
+  score,
+  advancing,
+}: {
+  team?: Team;
+  score: number | null;
+  advancing: boolean;
+}) {
+  return (
+    <p
+      className={`flex items-center gap-1.5 py-0.5 text-xs ${
+        team ? (advancing ? "font-bold" : "") : "italic text-zinc-400"
+      }`}
+    >
+      {team?.crest && (
+        // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
+        <img src={team.crest} alt="" width={14} height={14} className="shrink-0" />
+      )}
+      <span className="min-w-0 flex-1 truncate">
+        {team ? (team.shortName ?? team.name) : "Por definir"}
+      </span>
+      {score !== null && <span className="font-semibold tabular-nums">{score}</span>}
+      {advancing && <span className="text-emerald-600 dark:text-emerald-400">✓</span>}
+    </p>
   );
 }
