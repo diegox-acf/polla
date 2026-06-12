@@ -129,39 +129,39 @@ export default async function EquipoPage({
               <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
               {bucket.emoji} {bucket.title} ({bucket.members.length})
             </h2>
-            <div className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-              <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                {bucket.members.map((member) => {
-                  const years = age(member.dateOfBirth);
-                  const photo = photos.get(member.name) ?? null;
-                  return (
-                    <li
-                      key={member.id}
-                      className="flex items-center gap-3 px-4 py-2 text-sm"
-                    >
-                      {photo ? (
-                        // eslint-disable-next-line @next/next/no-img-element -- foto remota de TheSportsDB, tamaño fijo
-                        <img
-                          src={`${photo}/preview`}
-                          alt=""
-                          width={36}
-                          height={36}
-                          loading="lazy"
-                          className="size-9 shrink-0 rounded-full bg-zinc-100 object-cover object-top dark:bg-zinc-800"
-                        />
-                      ) : (
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
-                          {initials(member.name)}
-                        </span>
-                      )}
-                      <span className="min-w-0 flex-1 truncate font-medium">{member.name}</span>
-                      <span className="shrink-0 text-xs text-zinc-400 tabular-nums">
-                        {years !== null && `${years} años`}
+            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+              {bucket.members.map((member) => {
+                const years = age(member.dateOfBirth);
+                const photo = photos.get(member.name) ?? null;
+                return (
+                  <div
+                    key={member.id}
+                    className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-800"
+                  >
+                    {photo ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- foto remota de TheSportsDB, tamaño fijo
+                      <img
+                        src={`${photo}/preview`}
+                        alt=""
+                        width={80}
+                        height={80}
+                        loading="lazy"
+                        className="size-20 rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 object-cover object-top dark:from-emerald-950 dark:to-zinc-800"
+                      />
+                    ) : (
+                      <span className="flex size-20 items-center justify-center rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 text-xl font-bold text-emerald-700 dark:from-emerald-950 dark:to-zinc-800 dark:text-emerald-400">
+                        {initials(member.name)}
                       </span>
-                    </li>
-                  );
-                })}
-              </ul>
+                    )}
+                    <span className="mt-2.5 line-clamp-2 text-sm font-semibold leading-tight">
+                      {member.name}
+                    </span>
+                    {years !== null && (
+                      <span className="mt-1 text-xs text-zinc-400 tabular-nums">{years} años</span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         ))}
