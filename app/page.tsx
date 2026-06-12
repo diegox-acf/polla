@@ -36,12 +36,18 @@ export default async function Home() {
             )}
           </p>
 
-          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
             <HomeCard
               href="/fixture"
               emoji="🗓️"
               title="Fixture"
               description="Los 104 partidos y tus pronósticos"
+            />
+            <HomeCard
+              href="/tabla"
+              emoji="📊"
+              title="Tabla"
+              description="Posiciones y desglose de puntos"
             />
             <HomeCard
               href="/bonus"

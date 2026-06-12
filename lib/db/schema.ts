@@ -113,6 +113,9 @@ export const bonusPicks = pgTable("bonus_picks", {
   topScorer: text("top_scorer"),
   finalist1TeamId: integer("finalist1_team_id").references(() => teams.id),
   finalist2TeamId: integer("finalist2_team_id").references(() => teams.id),
+  // El goleador es texto libre: el admin marca al final del torneo si acertó
+  // (empate de goleadores incluido — basta estar entre ellos, REGLAS.md §2)
+  topScorerCorrect: boolean("top_scorer_correct").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

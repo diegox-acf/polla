@@ -45,7 +45,9 @@ export default async function RootLayout({
               <div className="flex items-center gap-1 text-sm font-medium">
                 <nav className="flex items-center gap-1">
                   <NavLink href="/fixture">Fixture</NavLink>
+                  <NavLink href="/tabla">Tabla</NavLink>
                   <NavLink href="/bonus">Bonus</NavLink>
+                  {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
                 </nav>
                 {session.user.image && (
                   // eslint-disable-next-line @next/next/no-img-element -- avatar de Google, tamaño fijo

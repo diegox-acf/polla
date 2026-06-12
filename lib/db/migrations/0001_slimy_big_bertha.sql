@@ -1,0 +1,1 @@
+ALTER TABLE "bonus_picks" ADD COLUMN "top_scorer_correct" boolean DEFAULT false NOT NULL;

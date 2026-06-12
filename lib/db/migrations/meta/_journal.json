@@ -8,6 +8,13 @@
       "when": 1781230019651,
       "tag": "0000_curved_warbound",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1781233918356,
+      "tag": "0001_slimy_big_bertha",
+      "breakpoints": true
     }
   ]
 }
