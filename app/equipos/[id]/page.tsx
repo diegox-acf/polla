@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
 import { fetchTeamDetail, type FdSquadMember, type FdTeamDetail } from "@/lib/football-data";
+import { fetchSquadPhotos, initials } from "@/lib/player-photos";
 
 export const metadata = { title: "Equipo — Polla Mundial 2026" };
 
@@ -53,6 +54,14 @@ export default async function EquipoPage({
   } catch {
     // API caída: mostramos lo que tenemos en DB y un aviso
   }
+
+  // Fotos desde TheSportsDB (cobertura parcial; sin foto → avatar de iniciales)
+  const photos = detail
+    ? await fetchSquadPhotos(
+        team.name,
+        detail.squad.map((m) => m.name),
+      )
+    : new Map<string, string>();
 
   const squad = detail?.squad ?? [];
   const buckets = new Map<string, FdSquadMember[]>();
@@ -124,12 +133,28 @@ export default async function EquipoPage({
               <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
                 {bucket.members.map((member) => {
                   const years = age(member.dateOfBirth);
+                  const photo = photos.get(member.name) ?? null;
                   return (
                     <li
                       key={member.id}
-                      className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
+                      className="flex items-center gap-3 px-4 py-2 text-sm"
                     >
-                      <span className="font-medium">{member.name}</span>
+                      {photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- foto remota de TheSportsDB, tamaño fijo
+                        <img
+                          src={`${photo}/preview`}
+                          alt=""
+                          width={36}
+                          height={36}
+                          loading="lazy"
+                          className="size-9 shrink-0 rounded-full bg-zinc-100 object-cover object-top dark:bg-zinc-800"
+                        />
+                      ) : (
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                          {initials(member.name)}
+                        </span>
+                      )}
+                      <span className="min-w-0 flex-1 truncate font-medium">{member.name}</span>
                       <span className="shrink-0 text-xs text-zinc-400 tabular-nums">
                         {years !== null && `${years} años`}
                       </span>
