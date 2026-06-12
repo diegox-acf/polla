@@ -57,19 +57,22 @@ export default async function FixturePage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight">Fixture</h1>
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+      <h1 className="text-3xl font-extrabold tracking-tight">Fixture</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Horarios en tu zona horaria. Puedes crear y editar cada pronóstico hasta el kickoff.
       </p>
 
       {pendingCount > 0 && (
-        <p className="mt-4 rounded-lg bg-amber-50 px-4 py-2.5 text-sm text-amber-800 dark:bg-amber-950 dark:text-amber-200">
-          Tienes <strong>{pendingCount}</strong>{" "}
-          {pendingCount === 1
-            ? "partido abierto sin pronóstico"
-            : "partidos abiertos sin pronóstico"}
-          .
+        <p className="mt-5 flex items-center gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+          <span aria-hidden>⏳</span>
+          <span>
+            Tienes <strong>{pendingCount}</strong>{" "}
+            {pendingCount === 1
+              ? "partido abierto sin pronóstico"
+              : "partidos abiertos sin pronóstico"}
+            .
+          </span>
         </p>
       )}
 
@@ -82,7 +85,8 @@ export default async function FixturePage() {
       <div className="mt-8 space-y-10">
         {sections.map((section) => (
           <section key={section.key}>
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
               {section.title}
             </h2>
             <div className="mt-3 space-y-3">
@@ -127,24 +131,39 @@ function MatchCard({
   const crossUndefined = !home || !away;
 
   return (
-    <article className="rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-      <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
-        <span>{match.group ? groupLabel(match.group) : stageLabel(match.stage)}</span>
+    <article className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="flex items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="flex items-center gap-2">
+          <span className="rounded-full bg-zinc-100 px-2 py-0.5 font-medium dark:bg-zinc-800">
+            {match.group ? groupLabel(match.group) : stageLabel(match.stage)}
+          </span>
+          {open && (
+            <span
+              className={
+                prediction
+                  ? "rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                  : "rounded-full bg-amber-100 px-2 py-0.5 font-medium text-amber-700 dark:bg-amber-900/60 dark:text-amber-300"
+              }
+            >
+              {prediction ? "Listo ✓" : "Pendiente"}
+            </span>
+          )}
+        </span>
         <span className="flex items-center gap-2">
           <StatusBadge status={match.status} />
           <LocalTime iso={match.kickoff.toISOString()} />
         </span>
       </div>
 
-      <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <div className="mt-3.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <TeamSide team={home} align="right" />
-        <div className="text-center">
+        <div className="min-w-16 text-center">
           {hasScore ? (
-            <span className="text-xl font-bold tabular-nums">
+            <span className="text-2xl font-extrabold tabular-nums">
               {match.homeScore90} – {match.awayScore90}
             </span>
           ) : (
-            <span className="text-sm text-zinc-400">vs</span>
+            <span className="text-xs font-medium uppercase text-zinc-400">vs</span>
           )}
           {advancing && (
             <p className="mt-0.5 text-[11px] text-zinc-500">
@@ -155,7 +174,7 @@ function MatchCard({
         <TeamSide team={away} />
       </div>
 
-      <div className="mt-3 border-t border-zinc-100 pt-3 dark:border-zinc-900">
+      <div className="mt-3.5 border-t border-zinc-100 pt-3 dark:border-zinc-800">
         {open && home && away ? (
           <PredictionForm
             matchId={match.id}
@@ -198,10 +217,10 @@ function TeamSide({ team, align = "left" }: { team?: Team; align?: "left" | "rig
   const name = team.shortName ?? team.name;
   const crest = team.crest ? (
     // eslint-disable-next-line @next/next/no-img-element -- crests remotos de football-data, tamaño fijo
-    <img src={team.crest} alt="" width={20} height={20} className="shrink-0" />
+    <img src={team.crest} alt="" width={24} height={24} className="shrink-0 drop-shadow-sm" />
   ) : null;
   return (
-    <span className={`flex items-center gap-2 text-sm font-medium ${alignClass}`}>
+    <span className={`flex items-center gap-2.5 text-sm font-semibold ${alignClass}`}>
       {align === "right" ? (
         <>
           {name}
@@ -219,7 +238,7 @@ function TeamSide({ team, align = "left" }: { team?: Team; align?: "left" | "rig
 
 const STATUS_BADGES: Partial<Record<Match["status"], { label: string; className: string }>> = {
   in_play: {
-    label: "En juego",
+    label: "● En juego",
     className: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200",
   },
   paused: {

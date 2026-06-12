@@ -42,14 +42,14 @@ export default async function BonusPage() {
     : [];
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight">Bonus</h1>
+    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
+      <h1 className="text-3xl font-extrabold tracking-tight">Bonus</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Campeón (15 pts), goleador (10 pts) y los dos finalistas (5 pts cada uno). Se eligen una
         vez y quedan bloqueados en el deadline.
       </p>
 
-      <p className="mt-4 rounded-lg bg-zinc-50 px-4 py-2.5 text-sm text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+      <p className="mt-5 rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
         {deadline === null ? (
           <>El admin aún no fijó el deadline de bonus. Puedes editar tus picks mientras tanto.</>
         ) : locked ? (
@@ -66,8 +66,9 @@ export default async function BonusPage() {
       </p>
 
       {locked ? (
-        <section className="mt-6 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+        <section className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
             Mis picks (bloqueados)
           </h2>
           {myPicks ? (
@@ -86,24 +87,27 @@ export default async function BonusPage() {
           )}
         </section>
       ) : (
-        <BonusForm
-          teams={allTeams.map((t) => ({ id: t.id, name: t.name }))}
-          initial={
-            myPicks
-              ? {
-                  championTeamId: myPicks.championTeamId,
-                  topScorer: myPicks.topScorer,
-                  finalist1TeamId: myPicks.finalist1TeamId,
-                  finalist2TeamId: myPicks.finalist2TeamId,
-                }
-              : undefined
-          }
-        />
+        <div className="mt-6 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <BonusForm
+            teams={allTeams.map((t) => ({ id: t.id, name: t.name }))}
+            initial={
+              myPicks
+                ? {
+                    championTeamId: myPicks.championTeamId,
+                    topScorer: myPicks.topScorer,
+                    finalist1TeamId: myPicks.finalist1TeamId,
+                    finalist2TeamId: myPicks.finalist2TeamId,
+                  }
+                : undefined
+            }
+          />
+        </div>
       )}
 
       {locked && everyonesPicks.length > 0 && (
         <section className="mt-10">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
             Picks de todos
           </h2>
           <div className="mt-3 overflow-x-auto">

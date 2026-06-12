@@ -34,7 +34,7 @@ export function PredictionForm({
   const needsAdvancing = isKnockout && isDraw;
 
   const inputClass =
-    "h-9 w-14 rounded-md border border-zinc-300 bg-transparent text-center tabular-nums dark:border-zinc-700 dark:bg-zinc-900";
+    "h-10 w-14 rounded-lg border border-zinc-300 bg-zinc-50 text-center text-base font-semibold tabular-nums outline-emerald-500 transition-colors focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950";
 
   return (
     <form action={formAction} className="flex flex-wrap items-center gap-2 text-sm">
@@ -71,7 +71,7 @@ export function PredictionForm({
           required
           defaultValue={initial?.advancingTeamId ?? ""}
           aria-label="Quién clasifica"
-          className="h-9 rounded-md border border-zinc-300 bg-transparent px-2 dark:border-zinc-700 dark:bg-zinc-900"
+          className="h-10 rounded-lg border border-zinc-300 bg-zinc-50 px-2 outline-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
         >
           <option value="" disabled>
             ¿Quién clasifica?
@@ -83,7 +83,7 @@ export function PredictionForm({
       <button
         type="submit"
         disabled={pending}
-        className="h-9 rounded-md bg-foreground px-4 font-medium text-background transition-opacity disabled:opacity-50"
+        className="h-10 rounded-lg bg-emerald-600 px-4 font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50"
       >
         {pending ? "Guardando…" : "Guardar"}
       </button>

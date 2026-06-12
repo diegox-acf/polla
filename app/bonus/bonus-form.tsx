@@ -25,7 +25,7 @@ export function BonusForm({ teams, initial }: Props) {
   );
 
   return (
-    <form action={formAction} className="mt-6 max-w-md space-y-5">
+    <form action={formAction} className="max-w-md space-y-5">
       <Field label="Campeón del mundo (15 pts)">
         <TeamSelect name="championTeamId" teams={teams} defaultValue={initial?.championTeamId} />
       </Field>
@@ -38,7 +38,7 @@ export function BonusForm({ teams, initial }: Props) {
           maxLength={120}
           defaultValue={initial?.topScorer ?? ""}
           placeholder="Nombre del jugador"
-          className="h-10 w-full rounded-md border border-zinc-300 bg-transparent px-3 dark:border-zinc-700 dark:bg-zinc-900"
+          className="h-10 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 outline-emerald-500 transition-colors focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
         />
       </Field>
       <Field label="Finalista 1 (5 pts)">
@@ -52,7 +52,7 @@ export function BonusForm({ teams, initial }: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="h-10 rounded-md bg-foreground px-5 font-medium text-background transition-opacity disabled:opacity-50"
+          className="h-10 rounded-lg bg-emerald-600 px-5 font-semibold text-white shadow-sm transition-all hover:bg-emerald-500 active:scale-[0.98] disabled:opacity-50"
         >
           {pending ? "Guardando…" : "Guardar picks"}
         </button>
@@ -90,7 +90,7 @@ function TeamSelect({
       name={name}
       required
       defaultValue={defaultValue ?? ""}
-      className="h-10 w-full rounded-md border border-zinc-300 bg-transparent px-2 dark:border-zinc-700 dark:bg-zinc-900"
+      className="h-10 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-2 outline-emerald-500 transition-colors focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
     >
       <option value="" disabled>
         Elige un equipo
