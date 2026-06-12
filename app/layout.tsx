@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { inArray } from "drizzle-orm";
 import Link from "next/link";
+import { signOutAction } from "@/app/actions";
 import { auth } from "@/auth";
+import { BottomNav } from "@/components/bottom-nav";
 import { LiveDot } from "@/components/live-dot";
 import { NavLink } from "@/components/nav-link";
+import { UserMenu } from "@/components/user-menu";
 import { db } from "@/lib/db";
 import { matches } from "@/lib/db/schema";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
@@ -77,7 +80,8 @@ export default async function RootLayout({
                     {liveMatches.length > 1 && <span>({liveMatches.length})</span>}
                   </Link>
                 )}
-                <nav className="flex items-center gap-1 overflow-x-auto">
+                {/* Pills solo en desktop; en móvil manda la barra inferior */}
+                <nav className="hidden items-center gap-1 sm:flex">
                   <NavLink href="/fixture">Fixture</NavLink>
                   <NavLink href="/grupos">Grupos</NavLink>
                   <NavLink href="/equipos">Equipos</NavLink>
@@ -87,21 +91,21 @@ export default async function RootLayout({
                   <NavLink href="/reglas">Reglas</NavLink>
                   {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
                 </nav>
-                {session.user.image && (
-                  // eslint-disable-next-line @next/next/no-img-element -- avatar de Google, tamaño fijo
-                  <img
-                    src={session.user.image}
-                    alt={session.user.name ?? "avatar"}
-                    width={28}
-                    height={28}
-                    className="ml-2 shrink-0 rounded-full ring-2 ring-emerald-600/30"
-                  />
-                )}
+                <UserMenu
+                  name={session.user.name}
+                  email={session.user.email}
+                  image={session.user.image}
+                  isAdmin={session.user.role === "admin"}
+                  signOutAction={signOutAction}
+                />
               </div>
             )}
           </div>
         </header>
-        {children}
+        <div className={`flex flex-1 flex-col ${session?.user ? "pb-16 sm:pb-0" : ""}`}>
+          {children}
+        </div>
+        {session?.user && <BottomNav />}
       </body>
     </html>
   );
