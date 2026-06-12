@@ -68,8 +68,9 @@ Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la t
    DATABASE_URL=<neon> npm run db:migrate
    DATABASE_URL=<neon> FOOTBALL_DATA_TOKEN=<token> ADMIN_EMAIL=<tu-email> npm run db:seed
    ```
-6. **Cron**: `vercel.json` ya programa `/api/cron/sync` cada 10 min. Ojo: el plan **Hobby
-   solo ejecuta crons una vez al día**; si no pagas Pro, usa un pinger externo gratuito
-   (ej. cron-job.org) llamando al endpoint con header `Authorization: Bearer <CRON_SECRET>`,
-   o el botón "Sincronizar ahora" de `/admin` durante los partidos.
+6. **Cron**: el plan **Hobby solo permite crons diarios** (Vercel rechaza el deploy con
+   expresiones más frecuentes), así que `vercel.json` programa `/api/cron/sync` una vez al
+   día (06:00 UTC) como red de seguridad. Para resultados al día durante los partidos usa
+   un pinger externo gratuito (ej. cron-job.org) llamando al endpoint cada 10 min con header
+   `Authorization: Bearer <CRON_SECRET>`, o el botón "Sincronizar ahora" de `/admin`.
 7. **Onboarding**: entra con tu cuenta admin y agrega los emails de tus amigos en `/admin`.
