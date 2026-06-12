@@ -4,17 +4,27 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { teams } from "@/lib/db/schema";
-import { fetchTeamDetail, type FdSquadMember, type FdTeamDetail } from "@/lib/football-data";
-import { fetchSquadPhotos, initials } from "@/lib/player-photos";
+import {
+  fetchTeamDetail,
+  fetchWorldCupScorers,
+  type FdSquadMember,
+  type FdTeamDetail,
+} from "@/lib/football-data";
+import { fetchSquadInfo, initials, type PlayerInfo } from "@/lib/player-photos";
 
 export const metadata = { title: "Equipo — Polla Mundial 2026" };
 
 // Buckets de posición (la API mezcla genéricos "Defence" y específicos "Centre-Back")
-const POSITION_BUCKETS: { title: string; emoji: string; matches: string[] }[] = [
-  { title: "Porteros", emoji: "🧤", matches: ["goalkeeper"] },
-  { title: "Defensas", emoji: "🛡️", matches: ["defence", "defender", "back"] },
-  { title: "Mediocampistas", emoji: "🎯", matches: ["midfield"] },
-  { title: "Delanteros", emoji: "⚡", matches: ["offence", "attack", "forward", "winger", "striker"] },
+const POSITION_BUCKETS: { title: string; emoji: string; abbr: string; matches: string[] }[] = [
+  { title: "Porteros", emoji: "🧤", abbr: "POR", matches: ["goalkeeper"] },
+  { title: "Defensas", emoji: "🛡️", abbr: "DEF", matches: ["defence", "defender", "back"] },
+  { title: "Mediocampistas", emoji: "🎯", abbr: "MED", matches: ["midfield"] },
+  {
+    title: "Delanteros",
+    emoji: "⚡",
+    abbr: "DEL",
+    matches: ["offence", "attack", "forward", "winger", "striker"],
+  },
 ];
 
 function bucketFor(position: string | null): string {
@@ -31,6 +41,108 @@ function age(dateOfBirth: string | null): number | null {
   if (Number.isNaN(dob.getTime())) return null;
   const diff = Date.now() - dob.getTime();
   return Math.floor(diff / (365.25 * 24 * 60 * 60 * 1000));
+}
+
+// Carta estilo álbum: marco degradado (dorado si ya marcó en el Mundial),
+// posición + escudo arriba, foto grande, nombre, club y barra de stats.
+function PlayerCard({
+  member,
+  info,
+  goals,
+  abbr,
+  crest,
+}: {
+  member: FdSquadMember;
+  info?: PlayerInfo;
+  goals: number;
+  abbr: string;
+  crest: string | null;
+}) {
+  const years = age(member.dateOfBirth);
+  const photo = info?.photo ?? null;
+  const isScorer = goals > 0;
+
+  return (
+    <div
+      className={`rounded-2xl p-[3px] shadow-md transition-all hover:-translate-y-1 hover:shadow-xl ${
+        isScorer
+          ? "bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-700"
+          : "bg-gradient-to-br from-emerald-400 via-emerald-600 to-teal-800"
+      }`}
+    >
+      <div className="flex h-full flex-col overflow-hidden rounded-[13px] bg-white dark:bg-zinc-900">
+        <div className="flex items-center justify-between px-3 pt-2.5">
+          <span
+            className={`text-sm font-black tracking-wider ${
+              isScorer
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-emerald-700 dark:text-emerald-400"
+            }`}
+          >
+            {abbr}
+          </span>
+          {crest && (
+            // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
+            <img src={crest} alt="" width={22} height={22} className="drop-shadow-sm" />
+          )}
+        </div>
+
+        <div className="mt-1.5 flex justify-center">
+          {photo ? (
+            // eslint-disable-next-line @next/next/no-img-element -- foto remota de TheSportsDB, tamaño fijo
+            <img
+              src={`${photo}/preview`}
+              alt=""
+              width={128}
+              height={128}
+              loading="lazy"
+              className="size-32 rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 object-cover object-top dark:from-emerald-950 dark:to-zinc-800"
+            />
+          ) : (
+            <span className="flex size-32 items-center justify-center rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 text-3xl font-bold text-emerald-700 dark:from-emerald-950 dark:to-zinc-800 dark:text-emerald-400">
+              {initials(member.name)}
+            </span>
+          )}
+        </div>
+
+        <h3 className="mt-2.5 line-clamp-2 px-2 text-center text-sm font-extrabold uppercase leading-tight tracking-tight">
+          {member.name}
+        </h3>
+        <p className="mb-2 mt-0.5 truncate px-2 text-center text-[11px] text-zinc-400">
+          {info?.club ?? " "}
+        </p>
+
+        <div className="mt-auto grid grid-cols-3 divide-x divide-zinc-100 border-t border-zinc-100 dark:divide-zinc-800 dark:border-zinc-800">
+          <CardStat label="Edad" value={years !== null ? String(years) : "—"} />
+          <CardStat label="Goles" value={String(goals)} highlight={isScorer} />
+          <CardStat label="Altura" value={info?.height?.replace(" ", "") ?? "—"} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CardStat({
+  label,
+  value,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div className="px-1 py-2 text-center">
+      <p
+        className={`text-[13px] font-extrabold tabular-nums ${
+          highlight ? "text-amber-600 dark:text-amber-400" : ""
+        }`}
+      >
+        {value}
+      </p>
+      <p className="text-[10px] uppercase tracking-wide text-zinc-400">{label}</p>
+    </div>
+  );
 }
 
 export default async function EquipoPage({
@@ -55,13 +167,21 @@ export default async function EquipoPage({
     // API caída: mostramos lo que tenemos en DB y un aviso
   }
 
-  // Fotos desde TheSportsDB (cobertura parcial; sin foto → avatar de iniciales)
-  const photos = detail
-    ? await fetchSquadPhotos(
-        team.name,
-        detail.squad.map((m) => m.name),
-      )
-    : new Map<string, string>();
+  // Fotos/club/altura desde TheSportsDB + goles del torneo desde football-data
+  const [squadInfo, scorers] = detail
+    ? await Promise.all([
+        fetchSquadInfo(
+          team.name,
+          detail.squad.map((m) => m.name),
+        ),
+        fetchWorldCupScorers(50).catch(() => []),
+      ])
+    : [new Map<string, PlayerInfo>(), []];
+
+  // Los goles vienen de la misma fuente que la nómina: el nombre matchea exacto
+  const goalsByName = new Map(
+    scorers.filter((s) => s.team.id === teamId).map((s) => [s.player.name, s.goals]),
+  );
 
   const squad = detail?.squad ?? [];
   const buckets = new Map<string, FdSquadMember[]>();
@@ -73,11 +193,15 @@ export default async function EquipoPage({
   }
   const orderedBuckets = [...POSITION_BUCKETS.map((b) => b.title), "Otros"]
     .filter((title) => buckets.has(title))
-    .map((title) => ({
-      title,
-      emoji: POSITION_BUCKETS.find((b) => b.title === title)?.emoji ?? "📋",
-      members: buckets.get(title)!,
-    }));
+    .map((title) => {
+      const bucket = POSITION_BUCKETS.find((b) => b.title === title);
+      return {
+        title,
+        emoji: bucket?.emoji ?? "📋",
+        abbr: bucket?.abbr ?? "JUG",
+        members: buckets.get(title)!,
+      };
+    });
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
@@ -130,38 +254,16 @@ export default async function EquipoPage({
               {bucket.emoji} {bucket.title} ({bucket.members.length})
             </h2>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-              {bucket.members.map((member) => {
-                const years = age(member.dateOfBirth);
-                const photo = photos.get(member.name) ?? null;
-                return (
-                  <div
-                    key={member.id}
-                    className="flex flex-col items-center rounded-2xl border border-zinc-200 bg-white p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-800"
-                  >
-                    {photo ? (
-                      // eslint-disable-next-line @next/next/no-img-element -- foto remota de TheSportsDB, tamaño fijo
-                      <img
-                        src={`${photo}/preview`}
-                        alt=""
-                        width={80}
-                        height={80}
-                        loading="lazy"
-                        className="size-20 rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 object-cover object-top dark:from-emerald-950 dark:to-zinc-800"
-                      />
-                    ) : (
-                      <span className="flex size-20 items-center justify-center rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 text-xl font-bold text-emerald-700 dark:from-emerald-950 dark:to-zinc-800 dark:text-emerald-400">
-                        {initials(member.name)}
-                      </span>
-                    )}
-                    <span className="mt-2.5 line-clamp-2 text-sm font-semibold leading-tight">
-                      {member.name}
-                    </span>
-                    {years !== null && (
-                      <span className="mt-1 text-xs text-zinc-400 tabular-nums">{years} años</span>
-                    )}
-                  </div>
-                );
-              })}
+              {bucket.members.map((member) => (
+                <PlayerCard
+                  key={member.id}
+                  member={member}
+                  info={squadInfo.get(member.name)}
+                  goals={goalsByName.get(member.name) ?? 0}
+                  abbr={bucket.abbr}
+                  crest={team.crest}
+                />
+              ))}
             </div>
           </section>
         ))}

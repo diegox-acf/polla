@@ -47,12 +47,28 @@ interface TsdbPlayer {
   strPlayer: string;
   strSport?: string;
   strNationality?: string | null;
+  strTeam?: string | null;
+  strHeight?: string | null;
   strCutout: string | null;
   strThumb: string | null;
 }
 
-// Nivel 1: fotos del plantel publicado en la página de la selección
-async function fetchTeamPhotoMap(alias: string): Promise<Map<string, string>> {
+// Datos de carta por jugador (lo que se pueda conseguir; todo opcional)
+export interface PlayerInfo {
+  photo: string | null;
+  club: string | null;
+  height: string | null;
+}
+
+// "1.85 m", "1,85", "6ft 1in (1.85 m)" → "1.85 m"
+function cleanHeight(height: string | null | undefined): string | null {
+  if (!height) return null;
+  const match = height.match(/(\d[.,]\d{2})/);
+  return match ? `${match[1].replace(",", ".")} m` : null;
+}
+
+// Nivel 1: el plantel publicado en la página de la selección
+async function fetchTeamRoster(alias: string): Promise<Map<string, TsdbPlayer>> {
   const search = await tsdbFetch<{ teams: TsdbTeam[] | null }>(
     `/searchteams.php?t=${encodeURIComponent(alias)}`,
   );
@@ -69,18 +85,16 @@ async function fetchTeamPhotoMap(alias: string): Promise<Map<string, string>> {
   const detail = await tsdbFetch<{ player: TsdbPlayer[] | null }>(
     `/lookup_all_players.php?id=${team.idTeam}`,
   );
-  const map = new Map<string, string>();
+  const map = new Map<string, TsdbPlayer>();
   for (const player of detail?.player ?? []) {
-    const url = player.strCutout || player.strThumb;
-    if (!url) continue;
-    map.set(normalize(player.strPlayer), url);
-    map.set(sortedKey(player.strPlayer), url);
+    map.set(normalize(player.strPlayer), player);
+    map.set(sortedKey(player.strPlayer), player);
   }
   return map;
 }
 
 // Nivel 2: búsqueda individual (muchos jugadores están bajo su club, no la selección)
-async function searchPlayerPhoto(name: string, countryAlias: string): Promise<string | null> {
+async function searchPlayer(name: string, countryAlias: string): Promise<TsdbPlayer | null> {
   const data = await tsdbFetch<{ player: TsdbPlayer[] | null }>(
     `/searchplayers.php?p=${encodeURIComponent(name)}`,
   );
@@ -88,38 +102,49 @@ async function searchPlayerPhoto(name: string, countryAlias: string): Promise<st
   const sameCountry = candidates.filter(
     (p) => p.strNationality && normalize(p.strNationality) === normalize(countryAlias),
   );
-  const pick = (sameCountry.length > 0 ? sameCountry : candidates).find(
-    (p) => p.strCutout || p.strThumb,
-  );
-  return pick ? pick.strCutout || pick.strThumb : null;
+  const pool = sameCountry.length > 0 ? sameCountry : candidates;
+  return pool.find((p) => p.strCutout || p.strThumb) ?? pool[0] ?? null;
 }
 
-// Mapa nombre-original → URL de foto para una nómina completa
-export async function fetchSquadPhotos(
+function toInfo(player: TsdbPlayer, alias: string): PlayerInfo {
+  const club = player.strTeam ?? null;
+  return {
+    photo: player.strCutout || player.strThumb || null,
+    // En la página de la selección strTeam es el propio país: no es un club
+    club: club && normalize(club) !== normalize(alias) ? club : null,
+    height: cleanHeight(player.strHeight),
+  };
+}
+
+// Mapa nombre-original → datos de carta para una nómina completa
+export async function fetchSquadInfo(
   teamName: string,
   memberNames: string[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, PlayerInfo>> {
   const alias = TEAM_ALIASES[teamName] ?? teamName;
-  const teamMap = await fetchTeamPhotoMap(alias);
+  const roster = await fetchTeamRoster(alias);
 
-  const photos = new Map<string, string>();
+  const info = new Map<string, PlayerInfo>();
   const missing: string[] = [];
   for (const name of memberNames) {
-    const url = teamMap.get(normalize(name)) ?? teamMap.get(sortedKey(name));
-    if (url) photos.set(name, url);
-    else missing.push(name);
+    const player = roster.get(normalize(name)) ?? roster.get(sortedKey(name));
+    if (player && (player.strCutout || player.strThumb)) {
+      info.set(name, toInfo(player, alias));
+    } else {
+      missing.push(name);
+    }
   }
 
   // Las búsquedas fallidas no se cachean, así que se reintentan en visitas futuras
   const fallbacks = await Promise.allSettled(
-    missing.map(async (name) => ({ name, url: await searchPlayerPhoto(name, alias) })),
+    missing.map(async (name) => ({ name, player: await searchPlayer(name, alias) })),
   );
   for (const result of fallbacks) {
-    if (result.status === "fulfilled" && result.value.url) {
-      photos.set(result.value.name, result.value.url);
+    if (result.status === "fulfilled" && result.value.player) {
+      info.set(result.value.name, toInfo(result.value.player, alias));
     }
   }
-  return photos;
+  return info;
 }
 
 export function initials(playerName: string): string {
