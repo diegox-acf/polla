@@ -2,6 +2,7 @@ import { asc, ne } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { LocalTime } from "@/components/local-time";
 import { Mascotas } from "@/components/mascotas";
 import { db } from "@/lib/db";
 import { matches, teams } from "@/lib/db/schema";
@@ -42,6 +43,33 @@ export default async function GruposPage() {
   }
   const thirdPlace = rounds.find((r) => r.stage === "THIRD_PLACE")?.matches[0];
   const bracketRounds = rounds.filter((r) => r.stage !== "THIRD_PLACE");
+
+  // Reordena cada ronda para que los partidos queden junto a su cruce destino.
+  // Antes de definirse los cruces no hay nada que ordenar; cuando un partido de
+  // la ronda siguiente ya tiene equipos, sus alimentadores se identifican por
+  // el clasificado y las líneas del cuadro quedan correctas.
+  for (let i = bracketRounds.length - 1; i >= 1; i--) {
+    const targets = bracketRounds[i].matches;
+    const prev = bracketRounds[i - 1].matches;
+    if (prev.length !== targets.length * 2) continue;
+    const used = new Set<number>();
+    const slots: (Match | null)[] = [];
+    for (const target of targets) {
+      const teamIds = [target.homeTeamId, target.awayTeamId].filter((x): x is number => x !== null);
+      const feeders = prev
+        .filter(
+          (p) =>
+            !used.has(p.id) &&
+            p.advancingTeamId !== null &&
+            teamIds.includes(p.advancingTeamId),
+        )
+        .slice(0, 2);
+      for (const feeder of feeders) used.add(feeder.id);
+      slots.push(feeders[0] ?? null, feeders[1] ?? null);
+    }
+    const remaining = prev.filter((p) => !used.has(p.id));
+    bracketRounds[i - 1].matches = slots.map((slot) => slot ?? remaining.shift()!);
+  }
 
   // fetchWorldCupStandings ya filtra a tablas TOTAL con grupo
   const groups = standings ?? [];
@@ -146,22 +174,62 @@ export default async function GruposPage() {
             Cuadro de eliminatorias
           </h2>
           <div className="-mx-4 mt-3 overflow-x-auto px-4 pb-2">
-            <div className="flex items-stretch gap-4">
-              {bracketRounds.map((round) => (
-                <div key={round.stage} className="flex flex-col">
-                  <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-400">
-                    {round.label}
-                  </p>
-                  <div className="flex flex-1 flex-col justify-around gap-2">
-                    {round.matches.map((match) => (
-                      <BracketCard key={match.id} match={match} teamById={teamById} />
-                    ))}
-                    {round.stage === "FINAL" && thirdPlace && (
-                      <BracketCard match={thirdPlace} teamById={teamById} label="3er puesto" />
+            <div className="flex items-stretch gap-8">
+              {bracketRounds.map((round, roundIndex) => {
+                const isFinal = round.stage === "FINAL";
+                const pairs: Match[][] = [];
+                if (!isFinal) {
+                  for (let i = 0; i < round.matches.length; i += 2) {
+                    pairs.push(round.matches.slice(i, i + 2));
+                  }
+                }
+                return (
+                  <div key={round.stage} className="flex flex-col">
+                    <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-zinc-400">
+                      {round.label}
+                    </p>
+                    {isFinal ? (
+                      <div className="flex flex-1 flex-col justify-center">
+                        <BracketCard match={round.matches[0]} teamById={teamById} incoming />
+                      </div>
+                    ) : (
+                      <div className="flex flex-1 flex-col">
+                        {pairs.map((pair, pairIndex) => (
+                          <div
+                            key={pairIndex}
+                            className="relative flex flex-1 flex-col justify-around"
+                          >
+                            {pair.map((match) => (
+                              <BracketCard
+                                key={match.id}
+                                match={match}
+                                teamById={teamById}
+                                incoming={roundIndex > 0}
+                                outgoing
+                              />
+                            ))}
+                            {/* línea vertical entre los dos partidos de la llave */}
+                            <span
+                              aria-hidden
+                              className="absolute bottom-1/4 right-[-16px] top-1/4 w-px bg-zinc-300 dark:bg-zinc-700"
+                            />
+                          </div>
+                        ))}
+                      </div>
                     )}
                   </div>
+                );
+              })}
+              {thirdPlace && (
+                <div className="flex flex-col">
+                  <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    3er puesto
+                  </p>
+                  <div className="flex flex-1 flex-col justify-center">
+                    <BracketCard match={thirdPlace} teamById={teamById} />
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <p className="mt-2 text-xs text-zinc-400">
@@ -176,35 +244,49 @@ export default async function GruposPage() {
 function BracketCard({
   match,
   teamById,
-  label,
+  incoming = false,
+  outgoing = false,
 }: {
   match: Match;
   teamById: Map<number, Team>;
-  label?: string;
+  incoming?: boolean;
+  outgoing?: boolean;
 }) {
   const home = match.homeTeamId !== null ? teamById.get(match.homeTeamId) : undefined;
   const away = match.awayTeamId !== null ? teamById.get(match.awayTeamId) : undefined;
   return (
-    <Link
-      href={`/partido/${match.id}`}
-      className="block w-44 shrink-0 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition-colors hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
-    >
-      {label && (
-        <p className="mb-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-          {label}
-        </p>
+    <div className="relative py-1">
+      {incoming && (
+        <span
+          aria-hidden
+          className="absolute left-[-16px] top-1/2 h-px w-4 bg-zinc-300 dark:bg-zinc-700"
+        />
       )}
-      <BracketTeam
-        team={home}
-        score={match.homeScore90}
-        advancing={home !== undefined && match.advancingTeamId === home.id}
-      />
-      <BracketTeam
-        team={away}
-        score={match.awayScore90}
-        advancing={away !== undefined && match.advancingTeamId === away.id}
-      />
-    </Link>
+      {outgoing && (
+        <span
+          aria-hidden
+          className="absolute right-[-16px] top-1/2 h-px w-4 bg-zinc-300 dark:bg-zinc-700"
+        />
+      )}
+      <Link
+        href={`/partido/${match.id}`}
+        className="block w-44 shrink-0 rounded-xl border border-zinc-200 bg-white px-2.5 py-2 shadow-sm transition-colors hover:border-emerald-300 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-emerald-700"
+      >
+        <p className="mb-1 text-[10px] text-zinc-400">
+          <LocalTime iso={match.kickoff.toISOString()} />
+        </p>
+        <BracketTeam
+          team={home}
+          score={match.homeScore90}
+          advancing={home !== undefined && match.advancingTeamId === home.id}
+        />
+        <BracketTeam
+          team={away}
+          score={match.awayScore90}
+          advancing={away !== undefined && match.advancingTeamId === away.id}
+        />
+      </Link>
+    </div>
   );
 }
 
