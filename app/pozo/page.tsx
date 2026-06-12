@@ -117,7 +117,7 @@ export default async function PozoPage() {
         {unpaid.length > 0 && (
           <p className="mt-2 text-xs text-zinc-400">
             {unpaid.length} {unpaid.length === 1 ? "jugador debe" : "jugadores deben"} la entrada.
-            El admin marca los pagos en /admin.
+            El admin marca los pagos.
           </p>
         )}
       </section>
