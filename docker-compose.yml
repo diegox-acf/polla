@@ -1,0 +1,15 @@
+# Postgres para desarrollo local: docker compose up -d
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: polla
+      POSTGRES_PASSWORD: polla
+      POSTGRES_DB: polla
+    ports:
+      - "5432:5432"
+    volumes:
+      - polla-db:/var/lib/postgresql/data
+
+volumes:
+  polla-db:
