@@ -128,6 +128,33 @@ export async function fetchWorldCupScorers(limit = 10): Promise<FdScorer[]> {
   return data.scorers;
 }
 
+// --- Plantel de un equipo ---
+
+export interface FdSquadMember {
+  id: number;
+  name: string;
+  position: string | null;
+  dateOfBirth: string | null;
+  nationality: string | null;
+}
+
+export interface FdTeamDetail {
+  id: number;
+  name: string;
+  shortName: string | null;
+  tla: string | null;
+  crest: string | null;
+  area: { name: string; flag: string | null } | null;
+  coach: { name: string | null; nationality: string | null } | null;
+  squad: FdSquadMember[];
+}
+
+// Cacheado 24 h: las nóminas casi no cambian durante el torneo. Se consulta
+// un equipo por visita (nunca los 48 de golpe), así que el rate limit no sufre.
+export async function fetchTeamDetail(teamId: number): Promise<FdTeamDetail> {
+  return fdFetch<FdTeamDetail>(`/teams/${teamId}`, 86400);
+}
+
 // Marcador al final de los 90' (REGLAS.md). Si hubo alargue, football-data
 // deja el resultado reglamentario en score.regularTime.
 export function score90(score: FdScore): FdScoreSide {

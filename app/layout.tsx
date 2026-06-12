@@ -46,6 +46,7 @@ export default async function RootLayout({
                 <nav className="flex items-center gap-1 overflow-x-auto">
                   <NavLink href="/fixture">Fixture</NavLink>
                   <NavLink href="/grupos">Grupos</NavLink>
+                  <NavLink href="/equipos">Equipos</NavLink>
                   <NavLink href="/tabla">Tabla</NavLink>
                   <NavLink href="/bonus">Bonus</NavLink>
                   <NavLink href="/pozo">Pozo</NavLink>

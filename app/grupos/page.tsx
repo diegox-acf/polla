@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { fetchWorldCupStandings, type FdStanding } from "@/lib/football-data";
@@ -75,7 +76,16 @@ export default async function GruposPage() {
                           // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
                           <img src={row.team.crest} alt="" width={16} height={16} />
                         )}
-                        {row.team.shortName ?? row.team.name}
+                        {row.team.id !== null ? (
+                          <Link
+                            href={`/equipos/${row.team.id}`}
+                            className="hover:text-emerald-700 hover:underline dark:hover:text-emerald-400"
+                          >
+                            {row.team.shortName ?? row.team.name}
+                          </Link>
+                        ) : (
+                          (row.team.shortName ?? row.team.name)
+                        )}
                       </span>
                     </td>
                     <td className="px-1.5 py-2 text-right tabular-nums">{row.playedGames}</td>
