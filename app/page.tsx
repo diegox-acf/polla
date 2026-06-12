@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { auth, signIn, signOut } from "@/auth";
-import { Mascotas } from "@/components/mascotas";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
 
 export default async function Home() {
@@ -102,11 +101,6 @@ export default async function Home() {
           </button>
         </form>
       )}
-
-      <div className="mt-12 flex flex-col items-center gap-2">
-        <Mascotas className="h-32 w-auto" />
-        <p className="text-xs text-zinc-400">Maple, Zayu y Clutch te esperan</p>
-      </div>
     </main>
   );
 }

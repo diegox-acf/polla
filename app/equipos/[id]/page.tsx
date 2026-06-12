@@ -64,13 +64,13 @@ function PlayerCard({
 
   return (
     <div
-      className={`rounded-2xl p-[3px] shadow-md transition-all hover:-translate-y-1 hover:shadow-xl ${
+      className={`group rounded-2xl p-[2px] shadow-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl ${
         isScorer
-          ? "bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-700"
-          : "bg-gradient-to-br from-emerald-400 via-emerald-600 to-teal-800"
+          ? "bg-gradient-to-br from-amber-300 via-amber-500 to-yellow-700 hover:shadow-amber-500/30"
+          : "bg-gradient-to-br from-emerald-400 via-emerald-600 to-teal-800 hover:shadow-emerald-500/25"
       }`}
     >
-      <div className="flex h-full flex-col overflow-hidden rounded-[13px] bg-white dark:bg-zinc-900">
+      <div className="flex h-full flex-col overflow-hidden rounded-[14px] bg-white dark:bg-zinc-900">
         <div className="flex items-center justify-between px-3 pt-2.5">
           <span
             className={`text-sm font-black tracking-wider ${
@@ -96,10 +96,10 @@ function PlayerCard({
               width={128}
               height={128}
               loading="lazy"
-              className="size-32 rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 object-cover object-top dark:from-emerald-950 dark:to-zinc-800"
+              className="size-32 rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 object-cover object-top transition-transform duration-300 ease-out group-hover:scale-110 dark:from-emerald-950 dark:to-zinc-800"
             />
           ) : (
-            <span className="flex size-32 items-center justify-center rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 text-3xl font-bold text-emerald-700 dark:from-emerald-950 dark:to-zinc-800 dark:text-emerald-400">
+            <span className="flex size-32 items-center justify-center rounded-full bg-gradient-to-b from-emerald-50 to-zinc-100 text-3xl font-bold text-emerald-700 transition-transform duration-300 ease-out group-hover:scale-110 dark:from-emerald-950 dark:to-zinc-800 dark:text-emerald-400">
               {initials(member.name)}
             </span>
           )}
