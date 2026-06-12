@@ -6,7 +6,7 @@ import { LocalTime } from "@/components/local-time";
 import { db } from "@/lib/db";
 import { matches, predictions, teams } from "@/lib/db/schema";
 import { canPredict, isKnockoutStage } from "@/lib/predictions";
-import { groupLabel, stageLabel } from "@/lib/stages";
+import { groupLabel, stageLabel, stageShortLabel, stageSlug } from "@/lib/stages";
 import { PredictionForm } from "./prediction-form";
 
 type Match = typeof matches.$inferSelect;
@@ -15,7 +15,12 @@ type Prediction = typeof predictions.$inferSelect;
 
 export const metadata = { title: "Fixture — Polla Mundial 2026" };
 
-export default async function FixturePage() {
+export default async function FixturePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ fase?: string }>;
+}) {
+  const { fase } = await searchParams;
   const session = await auth();
   const playerId = session?.user.playerId;
   if (typeof playerId !== "number") redirect("/");
@@ -36,26 +41,51 @@ export default async function FixturePage() {
   ).length;
 
   // Secciones en orden cronológico: fase de grupos por jornada, luego cada fase eliminatoria
-  const sections: { key: string; title: string; matches: Match[] }[] = [];
+  interface Section {
+    slug: string;
+    title: string;
+    shortTitle: string;
+    matches: Match[];
+    pending: number;
+  }
+  const sections: Section[] = [];
   const sectionIndex = new Map<string, number>();
   for (const match of allMatches) {
-    const key =
-      match.stage === "GROUP_STAGE" ? `${match.stage}:${match.matchday ?? 0}` : match.stage;
-    let index = sectionIndex.get(key);
+    const isGroup = match.stage === "GROUP_STAGE";
+    const slug = isGroup ? `jornada-${match.matchday ?? 0}` : stageSlug(match.stage);
+    let index = sectionIndex.get(slug);
     if (index === undefined) {
       index = sections.length;
-      sectionIndex.set(key, index);
+      sectionIndex.set(slug, index);
       sections.push({
-        key,
+        slug,
         title:
-          match.stage === "GROUP_STAGE" && match.matchday !== null
+          isGroup && match.matchday !== null
             ? `${stageLabel(match.stage)} — Jornada ${match.matchday}`
             : stageLabel(match.stage),
+        shortTitle: isGroup ? `J${match.matchday ?? "?"}` : stageShortLabel(match.stage),
         matches: [],
+        pending: 0,
       });
     }
     sections[index].matches.push(match);
+    if (canPredict(match, now) && !predictionByMatch.has(match.id)) {
+      sections[index].pending++;
+    }
   }
+
+  // Sin filtro en la URL: aterriza en la fase "vigente" (próximo partido o en juego)
+  const isCurrent = (m: Match) =>
+    m.status === "in_play" ||
+    m.status === "paused" ||
+    (m.status === "scheduled" && m.kickoff.getTime() >= now.getTime());
+  const defaultSlug =
+    (sections.find((s) => s.matches.some(isCurrent)) ?? sections.at(-1))?.slug ?? null;
+  const activeSlug =
+    fase === "todos" ? null : sections.some((s) => s.slug === fase) ? fase! : defaultSlug;
+  const visibleSections = activeSlug
+    ? sections.filter((s) => s.slug === activeSlug)
+    : sections;
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
@@ -83,9 +113,36 @@ export default async function FixturePage() {
         </p>
       )}
 
-      <div className="mt-8 space-y-10">
-        {sections.map((section) => (
-          <section key={section.key}>
+      {/* Filtro por jornada / fase */}
+      <nav
+        aria-label="Filtrar por fase"
+        className="sticky top-[53px] z-[5] -mx-4 mt-5 overflow-x-auto bg-background/90 px-4 py-2 backdrop-blur"
+      >
+        <div className="flex w-max items-center gap-1.5">
+          <FilterChip href="/fixture?fase=todos" active={activeSlug === null}>
+            Todos
+          </FilterChip>
+          {sections.map((section) => (
+            <FilterChip
+              key={section.slug}
+              href={`/fixture?fase=${section.slug}`}
+              active={section.slug === activeSlug}
+            >
+              {section.shortTitle}
+              {section.pending > 0 && (
+                <span
+                  aria-label={`${section.pending} pendientes`}
+                  className="ml-1.5 inline-block size-1.5 rounded-full bg-amber-500"
+                />
+              )}
+            </FilterChip>
+          ))}
+        </div>
+      </nav>
+
+      <div className="mt-4 space-y-10">
+        {visibleSections.map((section) => (
+          <section key={section.slug}>
             <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
               <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
               {section.title}
@@ -107,6 +164,29 @@ export default async function FixturePage() {
         ))}
       </div>
     </main>
+  );
+}
+
+function FilterChip({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      className={
+        active
+          ? "flex shrink-0 items-center rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm"
+          : "flex shrink-0 items-center rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-600 transition-colors hover:border-emerald-300 hover:text-emerald-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:border-emerald-700 dark:hover:text-emerald-400"
+      }
+    >
+      {children}
+    </Link>
   );
 }
 
