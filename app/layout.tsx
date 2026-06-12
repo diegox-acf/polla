@@ -84,6 +84,7 @@ export default async function RootLayout({
                   <NavLink href="/tabla">Tabla</NavLink>
                   <NavLink href="/bonus">Bonus</NavLink>
                   <NavLink href="/pozo">Pozo</NavLink>
+                  <NavLink href="/reglas">Reglas</NavLink>
                   {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
                 </nav>
                 {session.user.image && (
