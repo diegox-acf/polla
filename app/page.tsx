@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signIn, signOut } from "@/auth";
+import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
 
 export default async function Home() {
   const session = await auth();
@@ -12,9 +13,16 @@ export default async function Home() {
         className="pointer-events-none absolute left-1/2 top-1/3 -z-10 size-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-emerald-500/15 blur-3xl"
       />
 
-      <div className="text-center">
-        <p className="text-7xl drop-shadow-sm">⚽</p>
-        <h1 className="mt-5 bg-gradient-to-br from-emerald-600 to-teal-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-emerald-400 dark:to-teal-300">
+      <div className="flex flex-col items-center text-center">
+        {/* eslint-disable-next-line @next/next/no-img-element -- emblema remoto de football-data, tamaño fijo */}
+        <img
+          src={WORLD_CUP_EMBLEM}
+          alt="Copa Mundial FIFA 2026"
+          width={160}
+          height={160}
+          className="h-40 w-auto drop-shadow-md"
+        />
+        <h1 className="mt-6 bg-gradient-to-br from-emerald-600 to-teal-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl dark:from-emerald-400 dark:to-teal-300">
           Polla Mundial 2026
         </h1>
         <p className="mt-3 text-lg text-zinc-500 dark:text-zinc-400">

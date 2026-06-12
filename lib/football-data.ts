@@ -2,6 +2,10 @@
 
 const BASE_URL = "https://api.football-data.org/v4";
 
+// Emblema oficial del Mundial 2026, servido por football-data (campo
+// competition.emblem de /competitions/WC)
+export const WORLD_CUP_EMBLEM = "https://crests.football-data.org/wm26.png";
+
 export interface FdTeamRef {
   id: number | null;
   name: string | null;
