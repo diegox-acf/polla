@@ -42,9 +42,10 @@ export default async function RootLayout({
               <span className="hidden sm:inline">Polla 2026</span>
             </Link>
             {session?.user && (
-              <div className="flex items-center gap-1 text-sm font-medium">
-                <nav className="flex items-center gap-1">
+              <div className="flex min-w-0 items-center gap-1 text-sm font-medium">
+                <nav className="flex items-center gap-1 overflow-x-auto">
                   <NavLink href="/fixture">Fixture</NavLink>
+                  <NavLink href="/grupos">Grupos</NavLink>
                   <NavLink href="/tabla">Tabla</NavLink>
                   <NavLink href="/bonus">Bonus</NavLink>
                   <NavLink href="/pozo">Pozo</NavLink>
@@ -57,7 +58,7 @@ export default async function RootLayout({
                     alt={session.user.name ?? "avatar"}
                     width={28}
                     height={28}
-                    className="ml-2 rounded-full ring-2 ring-emerald-600/30"
+                    className="ml-2 shrink-0 rounded-full ring-2 ring-emerald-600/30"
                   />
                 )}
               </div>

@@ -45,7 +45,7 @@ export function stageShortLabel(stage: string): string {
   return STAGE_SHORT_LABELS[stage] ?? stageLabel(stage);
 }
 
-// "GROUP_A" → "Grupo A"
+// "GROUP_A" (de /matches) o "Group A" (de /standings) → "Grupo A"
 export function groupLabel(group: string): string {
-  return group.replace(/^GROUP_/, "Grupo ");
+  return group.replace(/^GROUP_/, "Grupo ").replace(/^Group /, "Grupo ");
 }

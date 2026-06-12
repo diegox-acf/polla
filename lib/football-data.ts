@@ -47,13 +47,17 @@ export interface FdMatch {
   score: FdScore;
 }
 
-async function fdFetch<T>(path: string): Promise<T> {
+// `revalidateSeconds` cachea la respuesta en el data cache de Next (una sola
+// llamada real cada N segundos, compartida entre todos los usuarios) — clave
+// para el free tier de 10 req/min.
+async function fdFetch<T>(path: string, revalidateSeconds?: number): Promise<T> {
   const token = process.env.FOOTBALL_DATA_TOKEN;
   if (!token) {
     throw new Error("FOOTBALL_DATA_TOKEN no está definido (ver .env.example)");
   }
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { "X-Auth-Token": token },
+    ...(revalidateSeconds !== undefined && { next: { revalidate: revalidateSeconds } }),
   });
   if (!res.ok) {
     throw new Error(`football-data.org ${path} respondió ${res.status}: ${await res.text()}`);
@@ -69,6 +73,59 @@ export async function fetchWorldCupTeams(): Promise<FdTeamRef[]> {
 export async function fetchWorldCupMatches(): Promise<FdMatch[]> {
   const data = await fdFetch<{ matches: FdMatch[] }>("/competitions/WC/matches");
   return data.matches;
+}
+
+// --- Tablas de grupos en vivo ---
+
+export interface FdTableEntry {
+  position: number;
+  team: FdTeamRef;
+  playedGames: number;
+  won: number;
+  draw: number;
+  lost: number;
+  points: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
+}
+
+export interface FdStanding {
+  stage: string;
+  type: "TOTAL" | "HOME" | "AWAY";
+  group: string | null;
+  table: FdTableEntry[];
+}
+
+// Cacheado 10 min: las tablas solo cambian al terminar partidos.
+// Ojo: en este endpoint el Mundial reporta stage "ALL" y group "Group A"
+// (legible, distinto del "GROUP_A" de /matches).
+export async function fetchWorldCupStandings(): Promise<FdStanding[]> {
+  const data = await fdFetch<{ standings: FdStanding[] }>(
+    "/competitions/WC/standings",
+    600,
+  );
+  return data.standings.filter((s) => s.type === "TOTAL" && s.group !== null);
+}
+
+// --- Goleadores (Bota de Oro) ---
+
+export interface FdScorer {
+  player: { id: number; name: string; nationality: string | null };
+  team: FdTeamRef;
+  playedMatches: number;
+  goals: number;
+  assists: number | null;
+  penalties: number | null;
+}
+
+// Cacheado 10 min
+export async function fetchWorldCupScorers(limit = 10): Promise<FdScorer[]> {
+  const data = await fdFetch<{ scorers: FdScorer[] }>(
+    `/competitions/WC/scorers?limit=${limit}`,
+    600,
+  );
+  return data.scorers;
 }
 
 // Marcador al final de los 90' (REGLAS.md). Si hubo alargue, football-data

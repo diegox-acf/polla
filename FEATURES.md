@@ -47,6 +47,11 @@ Grupo único de 10–15 jugadores. Reglas de juego en [REGLAS.md](REGLAS.md).
 - La app muestra: pozo acumulado, premios proyectados (60/30/10) y quién falta por pagar.
 - **La app nunca procesa dinero** — los pagos son transferencias entre amigos, esto es solo registro.
 
+### Extras ya implementados (datos en vivo de football-data.org)
+
+- **Grupos en vivo** (`/grupos`): las 12 tablas reales del torneo para afinar pronósticos de J2/J3. Cacheadas 10 min.
+- **Carrera por la Bota de Oro** (en `/bonus`): top 10 goleadores en vivo, para seguir tu pick de goleador. Cacheado 10 min.
+
 ## v1.1 — siguiente iteración (en orden de impacto)
 
 1. **Recordatorio de deadline por email** (Resend): aviso unas horas antes del primer partido de la jornada a quien tenga pronósticos pendientes. Es el feature que mantiene viva la polla.

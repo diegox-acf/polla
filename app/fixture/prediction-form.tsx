@@ -10,7 +10,11 @@ interface Props {
   awayTeamId: number;
   homeTeamName: string;
   awayTeamName: string;
-  initial?: { homeScore: number; awayScore: number; advancingTeamId: number | null };
+  initial?: {
+    homeScore: number;
+    awayScore: number;
+    advancingTeamId: number | null;
+  };
 }
 
 export function PredictionForm({
@@ -22,22 +26,31 @@ export function PredictionForm({
   awayTeamName,
   initial,
 }: Props) {
-  const [state, formAction, pending] = useActionState<PredictionFormState, FormData>(
-    savePrediction,
-    null,
+  const [state, formAction, pending] = useActionState<
+    PredictionFormState,
+    FormData
+  >(savePrediction, null);
+  const [homeScore, setHomeScore] = useState(
+    initial ? String(initial.homeScore) : "",
   );
-  const [homeScore, setHomeScore] = useState(initial ? String(initial.homeScore) : "");
-  const [awayScore, setAwayScore] = useState(initial ? String(initial.awayScore) : "");
+  const [awayScore, setAwayScore] = useState(
+    initial ? String(initial.awayScore) : "",
+  );
 
   const isDraw =
-    homeScore !== "" && awayScore !== "" && Number(homeScore) === Number(awayScore);
+    homeScore !== "" &&
+    awayScore !== "" &&
+    Number(homeScore) === Number(awayScore);
   const needsAdvancing = isKnockout && isDraw;
 
   const inputClass =
     "h-10 w-14 rounded-lg border border-zinc-300 bg-zinc-50 text-center text-base font-semibold tabular-nums outline-emerald-500 transition-colors focus:border-emerald-500 dark:border-zinc-700 dark:bg-zinc-950";
 
   return (
-    <form action={formAction} className="flex flex-wrap items-center gap-2 text-sm">
+    <form
+      action={formAction}
+      className="flex flex-wrap items-center gap-2 text-sm justify-center"
+    >
       <input type="hidden" name="matchId" value={matchId} />
       <span className="text-zinc-500 dark:text-zinc-400">Mi pronóstico:</span>
       <input
@@ -87,9 +100,13 @@ export function PredictionForm({
       >
         {pending ? "Guardando…" : "Guardar"}
       </button>
-      {state && !state.ok && <span className="text-red-600 dark:text-red-400">{state.error}</span>}
+      {state && !state.ok && (
+        <span className="text-red-600 dark:text-red-400">{state.error}</span>
+      )}
       {state?.ok && !pending && (
-        <span className="text-emerald-600 dark:text-emerald-400">Guardado ✓</span>
+        <span className="text-emerald-600 dark:text-emerald-400">
+          Guardado ✓
+        </span>
       )}
     </form>
   );

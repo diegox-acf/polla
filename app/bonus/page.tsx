@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { LocalTime } from "@/components/local-time";
 import { db } from "@/lib/db";
 import { bonusPicks, players, teams } from "@/lib/db/schema";
+import { fetchWorldCupScorers, type FdScorer } from "@/lib/football-data";
 import { BonusForm } from "./bonus-form";
 
 export const metadata = { title: "Bonus — Polla Mundial 2026" };
@@ -13,10 +14,12 @@ export default async function BonusPage() {
   const playerId = session?.user.playerId;
   if (typeof playerId !== "number") redirect("/");
 
-  const [settingsRow, allTeams, myPicks] = await Promise.all([
+  const [settingsRow, allTeams, myPicks, scorers] = await Promise.all([
     db.query.settings.findFirst(),
     db.query.teams.findMany({ orderBy: [asc(teams.name)] }),
     db.query.bonusPicks.findFirst({ where: eq(bonusPicks.playerId, playerId) }),
+    // Cacheado 10 min; si la API falla la sección simplemente no se muestra
+    fetchWorldCupScorers(10).catch((): FdScorer[] => []),
   ]);
 
   const deadline = settingsRow?.bonusDeadline ?? null;
@@ -102,6 +105,47 @@ export default async function BonusPage() {
             }
           />
         </div>
+      )}
+
+      {/* Carrera por la Bota de Oro (en vivo desde football-data.org) */}
+      {scorers.length > 0 && (
+        <section className="mt-10">
+          <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+            <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
+            Carrera por la Bota de Oro
+          </h2>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <ul className="divide-y divide-zinc-100 dark:divide-zinc-800">
+              {scorers.map((scorer, index) => (
+                <li
+                  key={scorer.player.id}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm"
+                >
+                  <span className="w-5 text-right text-xs tabular-nums text-zinc-400">
+                    {index + 1}
+                  </span>
+                  {scorer.team.crest && (
+                    // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
+                    <img src={scorer.team.crest} alt="" width={18} height={18} />
+                  )}
+                  <span className="min-w-0 flex-1 truncate font-medium">
+                    {scorer.player.name}
+                    <span className="ml-1.5 text-xs font-normal text-zinc-400">
+                      {scorer.team.shortName ?? scorer.team.name}
+                    </span>
+                  </span>
+                  <span className="font-bold tabular-nums">
+                    {scorer.goals} {scorer.goals === 1 ? "gol" : "goles"}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="mt-2 text-xs text-zinc-400">
+            Datos de football-data.org, actualizados cada ~10 minutos. Si hay empate de
+            goleadores al final, basta que tu elegido esté entre ellos.
+          </p>
+        </section>
       )}
 
       {locked && everyonesPicks.length > 0 && (
