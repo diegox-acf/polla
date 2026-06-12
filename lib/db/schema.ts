@@ -123,7 +123,7 @@ export const bonusPicks = pgTable("bonus_picks", {
 export const settings = pgTable("settings", {
   id: integer("id").primaryKey().default(1),
   entryAmount: integer("entry_amount").notNull().default(0),
-  currency: text("currency").notNull().default("CLP"),
+  currency: text("currency").notNull().default("BOB"),
   bonusDeadline: timestamp("bonus_deadline", { withTimezone: true }),
   prizeFirstPct: integer("prize_first_pct").notNull().default(60),
   prizeSecondPct: integer("prize_second_pct").notNull().default(30),

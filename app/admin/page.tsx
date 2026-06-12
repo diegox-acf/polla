@@ -219,19 +219,34 @@ export default async function AdminPage() {
           action={updateSettings}
           className="mt-3 max-w-md space-y-4 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
         >
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">
-              Entrada por jugador ({settingsRow?.currency ?? "CLP"})
-            </span>
-            <input
-              type="number"
-              name="entryAmount"
-              min={0}
-              required
-              defaultValue={settingsRow?.entryAmount ?? 0}
-              className="h-10 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 text-sm outline-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
-            />
-          </label>
+          <div className="grid grid-cols-[1fr_auto] gap-3">
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">Entrada por jugador</span>
+              <input
+                type="number"
+                name="entryAmount"
+                min={0}
+                required
+                defaultValue={settingsRow?.entryAmount ?? 0}
+                className="h-10 w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 text-sm outline-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
+              />
+            </label>
+            <label className="block">
+              <span className="mb-1.5 block text-sm font-medium">Moneda</span>
+              <select
+                name="currency"
+                defaultValue={settingsRow?.currency ?? "BOB"}
+                className="h-10 rounded-lg border border-zinc-300 bg-zinc-50 px-2 text-sm outline-emerald-500 dark:border-zinc-700 dark:bg-zinc-950"
+              >
+                <option value="BOB">BOB — Boliviano</option>
+                <option value="PEN">PEN — Sol peruano</option>
+                <option value="CLP">CLP — Peso chileno</option>
+                <option value="ARS">ARS — Peso argentino</option>
+                <option value="USD">USD — Dólar</option>
+                <option value="EUR">EUR — Euro</option>
+              </select>
+            </label>
+          </div>
           <label className="block">
             <span className="mb-1.5 block text-sm font-medium">Deadline de bonus (hora UTC)</span>
             <input

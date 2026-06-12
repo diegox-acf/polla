@@ -105,6 +105,7 @@ export async function updateSettings(formData: FormData): Promise<void> {
   const parsed = z
     .object({
       entryAmount: z.coerce.number().int().min(0),
+      currency: z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/),
       // datetime-local sin zona: se interpreta como UTC (así está rotulado en la UI)
       bonusDeadline: z
         .string()
@@ -114,16 +115,22 @@ export async function updateSettings(formData: FormData): Promise<void> {
     })
     .safeParse({
       entryAmount: formData.get("entryAmount"),
+      currency: formData.get("currency"),
       bonusDeadline: formData.get("bonusDeadline"),
     });
   if (!parsed.success) return;
 
   await db
     .update(settings)
-    .set({ entryAmount: parsed.data.entryAmount, bonusDeadline: parsed.data.bonusDeadline })
+    .set({
+      entryAmount: parsed.data.entryAmount,
+      currency: parsed.data.currency,
+      bonusDeadline: parsed.data.bonusDeadline,
+    })
     .where(eq(settings.id, 1));
   revalidatePath("/admin");
   revalidatePath("/bonus");
+  revalidatePath("/pozo");
 }
 
 // --- Resultados ---

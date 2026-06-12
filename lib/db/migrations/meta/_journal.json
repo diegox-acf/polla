@@ -15,6 +15,13 @@
       "when": 1781233918356,
       "tag": "0001_slimy_big_bertha",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1781247984040,
+      "tag": "0002_currency-default-bob",
+      "breakpoints": true
     }
   ]
 }

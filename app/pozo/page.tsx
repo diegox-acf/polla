@@ -14,7 +14,7 @@ export default async function PozoPage() {
   ]);
 
   const entry = settingsRow?.entryAmount ?? 0;
-  const currency = settingsRow?.currency ?? "CLP";
+  const currency = settingsRow?.currency ?? "BOB";
   const paid = allPlayers.filter((p) => p.paid);
   const unpaid = allPlayers.filter((p) => !p.paid);
   const pot = entry * paid.length;
@@ -26,7 +26,7 @@ export default async function PozoPage() {
     { label: "3º", emoji: "🥉", pct: settingsRow?.prizeThirdPct ?? 10 },
   ];
 
-  const fmt = new Intl.NumberFormat("es-CL", {
+  const fmt = new Intl.NumberFormat("es-BO", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,

@@ -1,6 +1,6 @@
 {
-  "id": "bc6e3241-2e1a-4f9a-bf6c-3a41fbd43b3b",
-  "prevId": "fd9d873b-1842-412e-80ab-9ac4b461bd32",
+  "id": "b6c24402-42c6-45f1-a724-048c50619f00",
+  "prevId": "bc6e3241-2e1a-4f9a-bf6c-3a41fbd43b3b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -58,38 +58,54 @@
         "bonus_picks_player_id_players_id_fk": {
           "name": "bonus_picks_player_id_players_id_fk",
           "tableFrom": "bonus_picks",
+          "columnsFrom": [
+            "player_id"
+          ],
           "tableTo": "players",
-          "columnsFrom": ["player_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "bonus_picks_champion_team_id_teams_id_fk": {
           "name": "bonus_picks_champion_team_id_teams_id_fk",
           "tableFrom": "bonus_picks",
+          "columnsFrom": [
+            "champion_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["champion_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "bonus_picks_finalist1_team_id_teams_id_fk": {
           "name": "bonus_picks_finalist1_team_id_teams_id_fk",
           "tableFrom": "bonus_picks",
+          "columnsFrom": [
+            "finalist1_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["finalist1_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "bonus_picks_finalist2_team_id_teams_id_fk": {
           "name": "bonus_picks_finalist2_team_id_teams_id_fk",
           "tableFrom": "bonus_picks",
+          "columnsFrom": [
+            "finalist2_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["finalist2_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -183,29 +199,41 @@
         "matches_home_team_id_teams_id_fk": {
           "name": "matches_home_team_id_teams_id_fk",
           "tableFrom": "matches",
+          "columnsFrom": [
+            "home_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["home_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "matches_away_team_id_teams_id_fk": {
           "name": "matches_away_team_id_teams_id_fk",
           "tableFrom": "matches",
+          "columnsFrom": [
+            "away_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["away_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "matches_advancing_team_id_teams_id_fk": {
           "name": "matches_advancing_team_id_teams_id_fk",
           "tableFrom": "matches",
+          "columnsFrom": [
+            "advancing_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["advancing_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -271,8 +299,10 @@
       "uniqueConstraints": {
         "players_email_unique": {
           "name": "players_email_unique",
-          "nullsNotDistinct": false,
-          "columns": ["email"]
+          "columns": [
+            "email"
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -350,20 +380,28 @@
         "prediction_audit_player_id_players_id_fk": {
           "name": "prediction_audit_player_id_players_id_fk",
           "tableFrom": "prediction_audit",
+          "columnsFrom": [
+            "player_id"
+          ],
           "tableTo": "players",
-          "columnsFrom": ["player_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "prediction_audit_match_id_matches_id_fk": {
           "name": "prediction_audit_match_id_matches_id_fk",
           "tableFrom": "prediction_audit",
+          "columnsFrom": [
+            "match_id"
+          ],
           "tableTo": "matches",
-          "columnsFrom": ["match_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -425,37 +463,52 @@
         "predictions_player_id_players_id_fk": {
           "name": "predictions_player_id_players_id_fk",
           "tableFrom": "predictions",
+          "columnsFrom": [
+            "player_id"
+          ],
           "tableTo": "players",
-          "columnsFrom": ["player_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "predictions_match_id_matches_id_fk": {
           "name": "predictions_match_id_matches_id_fk",
           "tableFrom": "predictions",
+          "columnsFrom": [
+            "match_id"
+          ],
           "tableTo": "matches",
-          "columnsFrom": ["match_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "predictions_advancing_team_id_teams_id_fk": {
           "name": "predictions_advancing_team_id_teams_id_fk",
           "tableFrom": "predictions",
+          "columnsFrom": [
+            "advancing_team_id"
+          ],
           "tableTo": "teams",
-          "columnsFrom": ["advancing_team_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "predictions_player_id_match_id_unique": {
           "name": "predictions_player_id_match_id_unique",
-          "nullsNotDistinct": false,
-          "columns": ["player_id", "match_id"]
+          "columns": [
+            "player_id",
+            "match_id"
+          ],
+          "nullsNotDistinct": false
         }
       },
       "policies": {},
@@ -540,20 +593,28 @@
         "result_audit_match_id_matches_id_fk": {
           "name": "result_audit_match_id_matches_id_fk",
           "tableFrom": "result_audit",
+          "columnsFrom": [
+            "match_id"
+          ],
           "tableTo": "matches",
-          "columnsFrom": ["match_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "result_audit_actor_player_id_players_id_fk": {
           "name": "result_audit_actor_player_id_players_id_fk",
           "tableFrom": "result_audit",
+          "columnsFrom": [
+            "actor_player_id"
+          ],
           "tableTo": "players",
-          "columnsFrom": ["actor_player_id"],
-          "columnsTo": ["id"],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "columnsTo": [
+            "id"
+          ],
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -684,19 +745,25 @@
     "public.player_role": {
       "name": "player_role",
       "schema": "public",
-      "values": ["admin", "player"]
+      "values": [
+        "admin",
+        "player"
+      ]
     },
     "public.result_source": {
       "name": "result_source",
       "schema": "public",
-      "values": ["api", "admin"]
+      "values": [
+        "api",
+        "admin"
+      ]
     }
   },
   "schemas": {},
+  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
-  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},
