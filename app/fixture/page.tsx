@@ -1,4 +1,5 @@
 import { asc, eq } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { LocalTime } from "@/components/local-time";
@@ -155,7 +156,11 @@ function MatchCard({
         </span>
       </div>
 
-      <div className="mt-3.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <Link
+        href={`/partido/${match.id}`}
+        title="Ver detalle del partido"
+        className="mt-3.5 grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+      >
         <TeamSide team={home} align="right" />
         <div className="min-w-16 text-center">
           {hasScore ? (
@@ -172,7 +177,7 @@ function MatchCard({
           )}
         </div>
         <TeamSide team={away} />
-      </div>
+      </Link>
 
       <div className="mt-3.5 border-t border-zinc-100 pt-3 dark:border-zinc-800">
         {open && home && away ? (

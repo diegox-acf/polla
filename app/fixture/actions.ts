@@ -99,5 +99,6 @@ export async function savePrediction(
   });
 
   revalidatePath("/fixture");
+  revalidatePath(`/partido/${matchId}`);
   return { ok: true };
 }

@@ -48,7 +48,28 @@ npm run dev            # http://localhost:3000
 | `npm run db:migrate` | Aplica migraciones |
 | `npm run db:seed` | Siembra admin + fixture (idempotente, re-ejecutable) |
 | `npm run db:studio` | UI para inspeccionar la base de datos |
+| `npm run sync` | Fuerza un sync de resultados desde football-data.org |
 
 ## Cómo funciona el acceso
 
-Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la tabla `players` (allowlist): el seed agrega a `ADMIN_EMAIL` como admin, y el admin invita al resto agregando sus emails desde la app.
+Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la tabla `players` (allowlist): el seed agrega a `ADMIN_EMAIL` como admin, y el admin invita al resto desde `/admin`.
+
+## Deploy a Vercel
+
+1. **Base de datos**: crea un proyecto en [Neon](https://neon.tech) (free tier) y copia el connection string.
+2. **Proyecto**: importa este repo en [Vercel](https://vercel.com/new). Framework: Next.js (autodetectado).
+3. **Variables de entorno** (Settings → Environment Variables): todas las de `.env.example` —
+   `DATABASE_URL` (Neon), `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`,
+   `FOOTBALL_DATA_TOKEN`, `ADMIN_EMAIL` y `CRON_SECRET` (`openssl rand -hex 32`).
+4. **Google OAuth**: en Google Cloud Console agrega el redirect URI de producción:
+   `https://<tu-dominio>.vercel.app/api/auth/callback/google` (y el origin `https://<tu-dominio>.vercel.app`).
+5. **Migrar y seedear producción** (desde tu máquina, apuntando a Neon):
+   ```bash
+   DATABASE_URL=<neon> npm run db:migrate
+   DATABASE_URL=<neon> FOOTBALL_DATA_TOKEN=<token> ADMIN_EMAIL=<tu-email> npm run db:seed
+   ```
+6. **Cron**: `vercel.json` ya programa `/api/cron/sync` cada 10 min. Ojo: el plan **Hobby
+   solo ejecuta crons una vez al día**; si no pagas Pro, usa un pinger externo gratuito
+   (ej. cron-job.org) llamando al endpoint con header `Authorization: Bearer <CRON_SECRET>`,
+   o el botón "Sincronizar ahora" de `/admin` durante los partidos.
+7. **Onboarding**: entra con tu cuenta admin y agrega los emails de tus amigos en `/admin`.
