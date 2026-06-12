@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { LocalTime } from "@/components/local-time";
+import { Mascotas } from "@/components/mascotas";
 import { db } from "@/lib/db";
 import { matches, predictions, teams } from "@/lib/db/schema";
 import { canPredict, isKnockoutStage } from "@/lib/predictions";
@@ -108,9 +109,12 @@ export default async function FixturePage({
       )}
 
       {allMatches.length === 0 && (
-        <p className="mt-8 text-sm text-zinc-500">
-          No hay partidos cargados todavía. Corre <code>npm run db:seed</code>.
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-3 text-center">
+          <Mascotas className="h-28 w-auto" />
+          <p className="text-sm text-zinc-500">
+            No hay partidos cargados todavía. Corre <code>npm run db:seed</code>.
+          </p>
+        </div>
       )}
 
       {/* Filtro por jornada / fase */}

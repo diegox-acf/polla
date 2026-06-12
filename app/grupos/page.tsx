@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { Mascotas } from "@/components/mascotas";
 import { fetchWorldCupStandings, type FdStanding } from "@/lib/football-data";
 import { groupLabel } from "@/lib/stages";
 
@@ -29,9 +30,12 @@ export default async function GruposPage() {
       </p>
 
       {groups.length === 0 && (
-        <p className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-          No se pudieron cargar las tablas en este momento. Intenta de nuevo en unos minutos.
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-4 text-center">
+          <Mascotas className="h-28 w-auto" />
+          <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+            No se pudieron cargar las tablas en este momento. Intenta de nuevo en unos minutos.
+          </p>
+        </div>
       )}
 
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
