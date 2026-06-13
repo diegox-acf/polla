@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 
 interface Props {
   name?: string | null;
@@ -9,9 +10,22 @@ interface Props {
   signOutAction: () => Promise<void>;
 }
 
+function subscribe() {
+  return () => {};
+}
+
 export function UserMenu({ name, email, image, signOutAction }: Props) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+
+  // El backdrop de "tocar fuera" debe cubrir todo el viewport, pero el header
+  // tiene backdrop-filter (containing block para fixed), así que lo montamos
+  // vía portal en <body>. En el servidor no hay document.
+  const mounted = useSyncExternalStore(
+    subscribe,
+    () => true,
+    () => false,
+  );
 
   return (
     <div className="relative ml-2 shrink-0">
@@ -35,13 +49,17 @@ export function UserMenu({ name, email, image, signOutAction }: Props) {
 
       {open && (
         <>
-          {/* Cierra el menú al tocar fuera */}
-          <button
-            aria-hidden
-            tabIndex={-1}
-            onClick={close}
-            className="fixed inset-0 z-10 cursor-default"
-          />
+          {/* Cierra el menú al tocar fuera (portal a body para escapar del header) */}
+          {mounted &&
+            createPortal(
+              <button
+                aria-hidden
+                tabIndex={-1}
+                onClick={close}
+                className="fixed inset-0 cursor-default"
+              />,
+              document.body,
+            )}
           <div
             role="menu"
             className="absolute right-0 z-20 mt-2 w-56 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
