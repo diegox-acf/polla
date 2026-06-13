@@ -1,17 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 interface Props {
   name?: string | null;
   email?: string | null;
   image?: string | null;
-  isAdmin: boolean;
   signOutAction: () => Promise<void>;
 }
 
-export function UserMenu({ name, email, image, isAdmin, signOutAction }: Props) {
+export function UserMenu({ name, email, image, signOutAction }: Props) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -52,20 +50,7 @@ export function UserMenu({ name, email, image, isAdmin, signOutAction }: Props) 
               <p className="truncate text-sm font-semibold">{name ?? "Jugador"}</p>
               {email && <p className="truncate text-xs text-zinc-400">{email}</p>}
             </div>
-            <div className="py-1 text-sm">
-              <MenuLink href="/equipos" onClick={close}>
-                🌎 Equipos
-              </MenuLink>
-              <MenuLink href="/reglas" onClick={close}>
-                📜 Reglas
-              </MenuLink>
-              {isAdmin && (
-                <MenuLink href="/admin" onClick={close}>
-                  🛠️ Admin
-                </MenuLink>
-              )}
-            </div>
-            <form action={signOutAction} className="border-t border-zinc-100 dark:border-zinc-800">
+            <form action={signOutAction}>
               <button
                 type="submit"
                 className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
@@ -77,26 +62,5 @@ export function UserMenu({ name, email, image, isAdmin, signOutAction }: Props) 
         </>
       )}
     </div>
-  );
-}
-
-function MenuLink({
-  href,
-  onClick,
-  children,
-}: {
-  href: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      onClick={onClick}
-      role="menuitem"
-      className="block px-4 py-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-    >
-      {children}
-    </Link>
   );
 }
