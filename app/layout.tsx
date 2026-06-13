@@ -52,9 +52,9 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-background/80 backdrop-blur dark:border-zinc-800/70">
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-2.5">
-            <div className="flex items-center gap-1.5">
+            <div className="flex min-w-0 items-center gap-1.5">
               {session?.user && <MobileNav isAdmin={session.user.role === "admin"} />}
-              <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
+              <Link href="/" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
               {/* eslint-disable-next-line @next/next/no-img-element -- emblema remoto de football-data, tamaño fijo */}
               <img
                 src={WORLD_CUP_EMBLEM}
@@ -63,7 +63,7 @@ export default async function RootLayout({
                 height={32}
                 className="h-8 w-auto shrink-0 drop-shadow-sm"
               />
-              <span className="hidden sm:inline">Polla 2026</span>
+              <span className="truncate">Polla 2026</span>
               </Link>
             </div>
             {session?.user && (
