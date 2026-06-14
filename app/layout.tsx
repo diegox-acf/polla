@@ -108,8 +108,8 @@ export default async function RootLayout({
                     {liveMatches.length > 1 && <span>({liveMatches.length})</span>}
                   </Link>
                 )}
-                {/* Pills solo en desktop; en móvil manda el menú hamburguesa */}
-                <nav className="hidden items-center gap-1 sm:flex">
+                {/* Links solo en desktop; en móvil manda el menú hamburguesa */}
+                <nav className="hidden items-center gap-2 sm:flex">
                   <NavLink href="/fixture">Fixture</NavLink>
                   <NavLink href="/grupos">Grupos</NavLink>
                   <NavLink href="/equipos">Equipos</NavLink>
