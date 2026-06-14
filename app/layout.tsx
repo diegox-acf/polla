@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
@@ -130,6 +131,7 @@ export default async function RootLayout({
         </header>
         <div className="flex flex-1 flex-col">{children}</div>
         {session?.user && <LiveRefresher active={liveOrSoon} />}
+        <Analytics />
       </body>
     </html>
   );
