@@ -19,8 +19,9 @@ export interface SyncSummary {
   updated: number;
 }
 
-// Solo llama a la API en ventanas de partido (free tier: 10 req/min, y el cron
-// corre seguido). `force` salta el guard — para el botón manual del admin.
+// Solo llama a la API en ventanas de partido (free tier: 10 req/min, y el
+// workflow lo dispara cada ~10 min). `force` salta el guard — para el botón
+// manual del admin.
 export async function syncResults({ force = false } = {}): Promise<SyncSummary> {
   const existing = await db.query.matches.findMany();
   const now = Date.now();

@@ -1,7 +1,9 @@
 import { syncResults } from "@/lib/sync";
 
-// Vercel Cron envía "Authorization: Bearer <CRON_SECRET>" automáticamente
-// cuando CRON_SECRET está definido como env var del proyecto.
+// Lo dispara el workflow .github/workflows/sync-results.yml cada ~10 min
+// (Vercel Hobby limita su cron a 1 vez/día). El workflow manda el header
+// "Authorization: Bearer <CRON_SECRET>"; el cron diario de Vercel también lo
+// envía automáticamente cuando CRON_SECRET está definido como env var.
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {

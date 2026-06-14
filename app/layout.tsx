@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { inArray } from "drizzle-orm";
+import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
 import { auth } from "@/auth";
 import { LiveDot } from "@/components/live-dot";
+import { LiveRefresher } from "@/components/live-refresher";
 import { MobileNav } from "@/components/mobile-nav";
 import { NavLink } from "@/components/nav-link";
 import { UserMenu } from "@/components/user-menu";
@@ -28,6 +29,13 @@ export const metadata: Metadata = {
   description: "Pronósticos entre amigos para la Copa del Mundo 2026",
 };
 
+// Leer el reloj fuera del cuerpo del componente (regla react-hooks/purity).
+const SOON_MS = 30 * 60 * 1000;
+function liveWindow() {
+  const now = new Date();
+  return { now, soon: new Date(now.getTime() + SOON_MS) };
+}
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +51,22 @@ export default async function RootLayout({
       })
     : [];
   const liveHref = liveMatches.length === 1 ? `/partido/${liveMatches[0].id}` : "/fixture";
+
+  // ¿Hay un partido por empezar pronto? Así la página empieza a autorrefrescarse
+  // poco antes del pitazo y "descubre" el cambio a en vivo, no solo después.
+  const { now, soon } = liveWindow();
+  const imminent = session?.user
+    ? await db.query.matches.findMany({
+        where: and(
+          eq(matches.status, "scheduled"),
+          gte(matches.kickoff, now),
+          lte(matches.kickoff, soon),
+        ),
+        columns: { id: true },
+        limit: 1,
+      })
+    : [];
+  const liveOrSoon = liveMatches.length > 0 || imminent.length > 0;
 
   return (
     <html
@@ -105,6 +129,7 @@ export default async function RootLayout({
           </div>
         </header>
         <div className="flex flex-1 flex-col">{children}</div>
+        {session?.user && <LiveRefresher active={liveOrSoon} />}
       </body>
     </html>
   );
