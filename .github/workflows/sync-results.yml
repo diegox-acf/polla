@@ -1,12 +1,10 @@
 name: Sync match results
 
-# Vercel Hobby limita los cron a 1 vez/día, así que el sync en vivo lo dispara
-# este workflow: pega a /api/cron/sync cada 10 min. GitHub puede retrasar la
-# ejecución en horas pico, pero alcanza para refrescar resultados durante partidos.
+# El disparo programado del sync lo hace cron-job.org (mejor precisión que el
+# cron de GitHub). Aquí queda solo el botón manual como respaldo. El cron diario
+# de Vercel sigue como red de seguridad.
 on:
-  schedule:
-    - cron: "*/10 * * * *"
-  workflow_dispatch: {} # permite dispararlo a mano desde la pestaña Actions
+  workflow_dispatch: {} # disparo manual de respaldo: Actions → Run workflow
 
 # Si una corrida tarda, evita que se solapen.
 concurrency:
