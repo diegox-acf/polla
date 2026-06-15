@@ -92,8 +92,8 @@ export default async function FixturePage({
       ? allMatches
       : (sections.find((s) => s.slug === activeSlug)?.matches ?? []);
   const stateGroups = [
-    { key: "upcoming", title: "Próximos", accent: "bg-emerald-500", matches: visibleMatches.filter(isUpcoming) },
     { key: "ongoing", title: "En vivo", accent: "bg-red-500", matches: visibleMatches.filter(isOngoing) },
+    { key: "upcoming", title: "Próximos", accent: "bg-emerald-500", matches: visibleMatches.filter(isUpcoming) },
     {
       key: "past",
       title: "Jugados",
