@@ -6,7 +6,13 @@ import { db } from "@/lib/db";
 import { matches, predictionAudit, predictions } from "@/lib/db/schema";
 import { isKnockoutStage } from "@/lib/predictions";
 import { groupLabel, stageLabel } from "@/lib/stages";
-import { removePlayer, togglePaid, toggleTopScorerCorrect, updateSettings } from "./actions";
+import {
+  removePlayer,
+  toggleApproved,
+  togglePaid,
+  toggleTopScorerCorrect,
+  updateSettings,
+} from "./actions";
 import { AddPlayerForm } from "./add-player-form";
 import { ResultForm } from "./result-form";
 import { SyncButton } from "./sync-button";
@@ -36,6 +42,7 @@ export default async function AdminPage() {
 
   const teamById = new Map(allTeams.map((t) => [t.id, t]));
   const pickByPlayer = new Map(allPicks.map((p) => [p.playerId, p]));
+  const pendingCount = allPlayers.filter((p) => !p.approved).length;
   const playersWithData = new Set([
     ...predPlayers.map((p) => p.playerId),
     ...auditPlayers.map((p) => p.playerId),
@@ -46,12 +53,19 @@ export default async function AdminPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <h1 className="text-3xl font-extrabold tracking-tight">Admin</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Allowlist, pagos, resultados y configuración de la polla.
+        Aprobaciones, pagos, resultados y configuración de la polla.
       </p>
 
       {/* ---- Jugadores ---- */}
       <section className="mt-8">
-        <SectionTitle>Jugadores ({allPlayers.length})</SectionTitle>
+        <SectionTitle>
+          Jugadores ({allPlayers.length})
+          {pendingCount > 0 && (
+            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium normal-case tracking-normal text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              {pendingCount} por aprobar
+            </span>
+          )}
+        </SectionTitle>
         <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
           <AddPlayerForm />
           <ul className="mt-4 divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -77,6 +91,29 @@ export default async function AdminPage() {
                       </span>
                     )}
                   </span>
+
+                  {/* Aprobación (registro abierto: el admin habilita el acceso) */}
+                  {player.role !== "admin" && (
+                    <form action={toggleApproved}>
+                      <input type="hidden" name="playerId" value={player.id} />
+                      <input type="hidden" name="approved" value={player.approved ? "" : "true"} />
+                      <button
+                        type="submit"
+                        title={
+                          player.approved
+                            ? "Revocar acceso (vuelve a pendiente)"
+                            : "Aprobar acceso a la app"
+                        }
+                        className={
+                          player.approved
+                            ? "rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300"
+                            : "rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+                        }
+                      >
+                        {player.approved ? "Aprobado ✓" : "Aprobar"}
+                      </button>
+                    </form>
+                  )}
 
                   {/* Pagó */}
                   <form action={togglePaid}>
@@ -132,8 +169,9 @@ export default async function AdminPage() {
             })}
           </ul>
           <p className="mt-2 text-xs text-zinc-400">
-            Solo se pueden quitar jugadores sin pronósticos ni picks. El allowlist se aplica en
-            cada login.
+            Cualquiera entra con Google, pero queda <strong>pendiente</strong> hasta que lo
+            apruebes — sin aprobación no puede pronosticar. Agregar un email aquí lo deja aprobado
+            de una. Solo se pueden quitar jugadores sin pronósticos ni picks.
           </p>
         </div>
       </section>

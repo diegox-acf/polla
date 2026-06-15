@@ -20,8 +20,8 @@ async function seedAdmin() {
   if (!email) throw new Error("ADMIN_EMAIL no está definido (ver .env.example)");
   await db
     .insert(players)
-    .values({ email, role: "admin" })
-    .onConflictDoUpdate({ target: players.email, set: { role: "admin" } });
+    .values({ email, role: "admin", approved: true })
+    .onConflictDoUpdate({ target: players.email, set: { role: "admin", approved: true } });
   console.log(`✔ admin: ${email}`);
 }
 

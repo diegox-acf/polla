@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
+import { approvedPlayerId } from "@/lib/access";
 import { db } from "@/lib/db";
 import { bonusPicks } from "@/lib/db/schema";
 
@@ -23,10 +23,9 @@ export async function saveBonusPicks(
   _prev: BonusFormState,
   formData: FormData,
 ): Promise<BonusFormState> {
-  const session = await auth();
-  const playerId = session?.user.playerId;
-  if (typeof playerId !== "number") {
-    return { ok: false, error: "Sesión inválida. Vuelve a iniciar sesión." };
+  const playerId = await approvedPlayerId();
+  if (playerId === null) {
+    return { ok: false, error: "Tu cuenta aún no está aprobada por el admin." };
   }
 
   // Deadline server-side, configurable por el admin en settings

@@ -8,14 +8,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
   session: { strategy: "jwt" },
   callbacks: {
-    // Allowlist: solo entran emails que el admin agregó a la tabla players.
+    // Registro abierto: cualquiera con Google entra. Si es su primera vez se crea
+    // la fila (approved=false) y queda pendiente de aprobación del admin.
     async signIn({ user }) {
       const email = user.email?.toLowerCase();
       if (!email) return false;
       const player = await db.query.players.findFirst({
         where: eq(players.email, email),
       });
-      if (!player) return false;
+      if (!player) {
+        await db.insert(players).values({
+          email,
+          name: user.name ?? null,
+          image: user.image ?? null,
+        });
+        return true;
+      }
       // Completa nombre y foto desde Google en el primer login
       await db
         .update(players)

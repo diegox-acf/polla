@@ -24,14 +24,17 @@ export const matchStatus = pgEnum("match_status", [
 
 export const resultSource = pgEnum("result_source", ["api", "admin"]);
 
-// Doble propósito: allowlist (el admin crea la fila con el email) y perfil
-// (nombre/foto se completan desde Google en el primer login).
+// Registro abierto: cualquiera entra con Google y se crea su fila, pero queda
+// inactivo (approved=false) hasta que el admin lo apruebe. El perfil
+// (nombre/foto) se completa desde Google en el primer login.
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name"),
   image: text("image"),
   role: playerRole("role").notNull().default("player"),
+  // Gate de acceso: sin aprobación del admin el jugador no puede interactuar.
+  approved: boolean("approved").notNull().default(false),
   paid: boolean("paid").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

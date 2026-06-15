@@ -30,9 +30,10 @@ export async function addPlayer(
   const parsed = emailInput.safeParse(formData.get("email"));
   if (!parsed.success) return { ok: false, error: "Email inválido." };
 
+  // Email agregado por el admin: entra ya aprobado.
   const inserted = await db
     .insert(players)
-    .values({ email: parsed.data })
+    .values({ email: parsed.data, approved: true })
     .onConflictDoNothing()
     .returning({ id: players.id });
   if (inserted.length === 0) {
@@ -41,6 +42,26 @@ export async function addPlayer(
 
   revalidatePath("/admin");
   return { ok: true, message: `${parsed.data} agregado.` };
+}
+
+// Aprobar / revocar el acceso de un jugador que se registró por su cuenta.
+export async function toggleApproved(formData: FormData): Promise<void> {
+  const adminId = await requireAdmin();
+  if (adminId === null) return;
+
+  const parsed = z
+    .object({
+      playerId: z.coerce.number().int().positive(),
+      approved: z.coerce.boolean(),
+    })
+    .safeParse({ playerId: formData.get("playerId"), approved: formData.get("approved") });
+  if (!parsed.success || parsed.data.playerId === adminId) return; // no te revoques a ti mismo
+
+  await db
+    .update(players)
+    .set({ approved: parsed.data.approved })
+    .where(eq(players.id, parsed.data.playerId));
+  revalidatePath("/admin");
 }
 
 export async function removePlayer(formData: FormData): Promise<void> {

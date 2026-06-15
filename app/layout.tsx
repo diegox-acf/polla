@@ -4,12 +4,13 @@ import { Analytics } from "@vercel/analytics/next";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
-import { auth } from "@/auth";
 import { LiveDot } from "@/components/live-dot";
 import { LiveRefresher } from "@/components/live-refresher";
 import { MobileNav } from "@/components/mobile-nav";
 import { NavLink } from "@/components/nav-link";
+import { PendingApproval } from "@/components/pending-approval";
 import { UserMenu } from "@/components/user-menu";
+import { getAccess } from "@/lib/access";
 import { db } from "@/lib/db";
 import { matches } from "@/lib/db/schema";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
@@ -42,10 +43,12 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
+  const { session, approved } = await getAccess();
+  // Logueado pero sin aprobar: ve solo la pantalla de espera, nada de la app.
+  const pending = !!session?.user && !approved;
 
   // Partidos en vivo para el indicador global del header
-  const liveMatches = session?.user
+  const liveMatches = approved
     ? await db.query.matches.findMany({
         where: inArray(matches.status, ["in_play", "paused"]),
         columns: { id: true },
@@ -56,7 +59,7 @@ export default async function RootLayout({
   // ¿Hay un partido por empezar pronto? Así la página empieza a autorrefrescarse
   // poco antes del pitazo y "descubre" el cambio a en vivo, no solo después.
   const { now, soon } = liveWindow();
-  const imminent = session?.user
+  const imminent = approved
     ? await db.query.matches.findMany({
         where: and(
           eq(matches.status, "scheduled"),
@@ -78,7 +81,7 @@ export default async function RootLayout({
         <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-background/80 backdrop-blur dark:border-zinc-800/70">
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-1.5">
-              {session?.user && <MobileNav isAdmin={session.user.role === "admin"} />}
+              {approved && <MobileNav isAdmin={session?.user.role === "admin"} />}
               <Link href="/" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
               {/* eslint-disable-next-line @next/next/no-img-element -- emblema remoto de football-data, tamaño fijo */}
               <img
@@ -109,16 +112,18 @@ export default async function RootLayout({
                   </Link>
                 )}
                 {/* Links solo en desktop; en móvil manda el menú hamburguesa */}
-                <nav className="hidden items-center gap-2 sm:flex">
-                  <NavLink href="/fixture">Fixture</NavLink>
-                  <NavLink href="/grupos">Grupos</NavLink>
-                  <NavLink href="/equipos">Equipos</NavLink>
-                  <NavLink href="/tabla">Tabla</NavLink>
-                  <NavLink href="/bonus">Bonus</NavLink>
-                  <NavLink href="/pozo">Pozo</NavLink>
-                  <NavLink href="/reglas">Reglas</NavLink>
-                  {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
-                </nav>
+                {approved && (
+                  <nav className="hidden items-center gap-2 sm:flex">
+                    <NavLink href="/fixture">Fixture</NavLink>
+                    <NavLink href="/grupos">Grupos</NavLink>
+                    <NavLink href="/equipos">Equipos</NavLink>
+                    <NavLink href="/tabla">Tabla</NavLink>
+                    <NavLink href="/bonus">Bonus</NavLink>
+                    <NavLink href="/pozo">Pozo</NavLink>
+                    <NavLink href="/reglas">Reglas</NavLink>
+                    {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
+                  </nav>
+                )}
                 <UserMenu
                   name={session.user.name}
                   email={session.user.email}
@@ -129,8 +134,10 @@ export default async function RootLayout({
             )}
           </div>
         </header>
-        <div className="flex flex-1 flex-col">{children}</div>
-        {session?.user && <LiveRefresher active={liveOrSoon} />}
+        <div className="flex flex-1 flex-col">
+          {pending ? <PendingApproval email={session?.user.email} /> : children}
+        </div>
+        {approved && <LiveRefresher active={liveOrSoon} />}
         <Analytics />
       </body>
     </html>
