@@ -4,7 +4,7 @@ import { auth } from "@/auth";
 import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
 import { db } from "@/lib/db";
-import { matches, predictions, teams } from "@/lib/db/schema";
+import { matches, players, predictions, teams } from "@/lib/db/schema";
 import { canPredict, isKnockoutStage } from "@/lib/predictions";
 import { scoreMatch, type MatchTally } from "@/lib/scoring/scoring";
 import { groupLabel, stageLabel } from "@/lib/stages";
@@ -69,7 +69,7 @@ export default async function PartidoPage({
 
   if (locked) {
     const [allPlayers, allPredictions] = await Promise.all([
-      db.query.players.findMany(),
+      db.query.players.findMany({ where: eq(players.approved, true) }),
       db.query.predictions.findMany({ where: eq(predictions.matchId, matchId) }),
     ]);
     const predByPlayer = new Map(allPredictions.map((p) => [p.playerId, p]));

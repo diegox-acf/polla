@@ -1,6 +1,8 @@
+import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { players } from "@/lib/db/schema";
 
 export const metadata = { title: "Pozo — Polla Mundial 2026" };
 
@@ -10,7 +12,11 @@ export default async function PozoPage() {
 
   const [settingsRow, allPlayers] = await Promise.all([
     db.query.settings.findFirst(),
-    db.query.players.findMany({ orderBy: (p, { asc }) => [asc(p.createdAt)] }),
+    // Solo jugadores aprobados participan del pozo
+    db.query.players.findMany({
+      where: eq(players.approved, true),
+      orderBy: (p, { asc }) => [asc(p.createdAt)],
+    }),
   ]);
 
   const entry = settingsRow?.entryAmount ?? 0;

@@ -2,7 +2,7 @@ import { eq, inArray } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { matches, predictions } from "@/lib/db/schema";
+import { matches, players, predictions } from "@/lib/db/schema";
 import { computeStandings, type BonusOutcome, type PlayerInput } from "@/lib/scoring/scoring";
 
 export const metadata = { title: "Tabla — Polla Mundial 2026" };
@@ -19,7 +19,8 @@ export default async function TablaPage() {
   if (typeof session?.user.playerId !== "number") redirect("/");
 
   const [allPlayers, finishedMatches, allPicks, finalMatch] = await Promise.all([
-    db.query.players.findMany(),
+    // Solo jugadores aprobados entran a la tabla
+    db.query.players.findMany({ where: eq(players.approved, true) }),
     db.query.matches.findMany({ where: eq(matches.status, "finished") }),
     db.query.bonusPicks.findMany(),
     db.query.matches.findFirst({ where: eq(matches.stage, "FINAL") }),
