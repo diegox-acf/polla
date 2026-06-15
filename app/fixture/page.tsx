@@ -77,17 +77,30 @@ export default async function FixturePage({
   }
 
   // Sin filtro en la URL: aterriza en la fase "vigente" (próximo partido o en juego)
-  const isCurrent = (m: Match) =>
-    m.status === "in_play" ||
-    m.status === "paused" ||
-    (m.status === "scheduled" && m.kickoff.getTime() >= now.getTime());
+  const isOngoing = (m: Match) => m.status === "in_play" || m.status === "paused";
+  const isUpcoming = (m: Match) =>
+    m.status === "scheduled" && m.kickoff.getTime() >= now.getTime();
+  const isCurrent = (m: Match) => isOngoing(m) || isUpcoming(m);
   const defaultSlug =
     (sections.find((s) => s.matches.some(isCurrent)) ?? sections.at(-1))?.slug ?? null;
   const activeSlug =
     fase === "todos" ? null : sections.some((s) => s.slug === fase) ? fase! : defaultSlug;
-  const visibleSections = activeSlug
-    ? sections.filter((s) => s.slug === activeSlug)
-    : sections;
+
+  // El filtro elige la fase; dentro, los partidos se agrupan por estado (próximos → en vivo → jugados)
+  const visibleMatches =
+    activeSlug === null
+      ? allMatches
+      : (sections.find((s) => s.slug === activeSlug)?.matches ?? []);
+  const stateGroups = [
+    { key: "upcoming", title: "Próximos", accent: "bg-emerald-500", matches: visibleMatches.filter(isUpcoming) },
+    { key: "ongoing", title: "En vivo", accent: "bg-red-500", matches: visibleMatches.filter(isOngoing) },
+    {
+      key: "past",
+      title: "Jugados",
+      accent: "bg-zinc-400",
+      matches: visibleMatches.filter((m) => !isUpcoming(m) && !isOngoing(m)),
+    },
+  ].filter((g) => g.matches.length > 0);
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
@@ -146,14 +159,17 @@ export default async function FixturePage({
       </nav>
 
       <div className="mt-4 space-y-10">
-        {visibleSections.map((section) => (
-          <section key={section.slug}>
+        {stateGroups.map((group) => (
+          <section key={group.key}>
             <h2 className="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-              <span aria-hidden className="h-4 w-1 rounded-full bg-emerald-500" />
-              {section.title}
+              <span aria-hidden className={`h-4 w-1 rounded-full ${group.accent}`} />
+              {group.title}
+              <span className="font-normal normal-case tracking-normal text-zinc-400">
+                ({group.matches.length})
+              </span>
             </h2>
             <div className="mt-3 space-y-3">
-              {section.matches.map((match) => (
+              {group.matches.map((match) => (
                 <MatchCard
                   key={match.id}
                   match={match}
