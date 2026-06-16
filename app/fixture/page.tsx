@@ -387,12 +387,12 @@ function MyLockedPrediction({
   teamById: Map<number, Team>;
 }) {
   if (!prediction) {
-    return <p className="text-sm text-zinc-400">Sin pronóstico (0 pts)</p>;
+    return <p className="text-center text-sm text-zinc-400">Sin pronóstico (0 pts)</p>;
   }
   const advancing =
     prediction.advancingTeamId !== null ? teamById.get(prediction.advancingTeamId) : undefined;
   return (
-    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+    <p className="text-center text-sm text-zinc-600 dark:text-zinc-300">
       Tu pronóstico:{" "}
       <span className="font-semibold tabular-nums">
         {prediction.homeScore} – {prediction.awayScore}
