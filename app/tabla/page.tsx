@@ -1,4 +1,5 @@
 import { eq, inArray } from "drizzle-orm";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
@@ -139,17 +140,25 @@ export default async function TablaPage() {
                   </td>
                   <td className="px-3 py-2.5">
                     <span className="flex items-center gap-2 font-medium">
-                      {player?.image && (
-                        // eslint-disable-next-line @next/next/no-img-element -- avatar de Google, tamaño fijo
-                        <img
-                          src={player.image}
-                          alt=""
-                          width={24}
-                          height={24}
-                          className="rounded-full"
-                        />
-                      )}
-                      {player?.name ?? player?.email ?? `Jugador ${row.playerId}`}
+                      <Link
+                        href={`/jugador/${row.playerId}`}
+                        title="Ver pronósticos de partidos jugados"
+                        className="flex min-w-0 items-center gap-2 underline-offset-4 hover:text-emerald-700 hover:underline dark:hover:text-emerald-400"
+                      >
+                        {player?.image && (
+                          // eslint-disable-next-line @next/next/no-img-element -- avatar de Google, tamaño fijo
+                          <img
+                            src={player.image}
+                            alt=""
+                            width={24}
+                            height={24}
+                            className="rounded-full"
+                          />
+                        )}
+                        <span className="truncate">
+                          {player?.name ?? player?.email ?? `Jugador ${row.playerId}`}
+                        </span>
+                      </Link>
                       {row.tiebrokenBy && (
                         <span
                           title={TIEBREAK_LABELS[row.tiebrokenBy]}
