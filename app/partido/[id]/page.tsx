@@ -5,6 +5,7 @@ import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
 import { db } from "@/lib/db";
 import { matches, players, predictions, teams } from "@/lib/db/schema";
+import { isLive, liveLabel } from "@/lib/match-state";
 import { canPredict, isKnockoutStage } from "@/lib/predictions";
 import { scoreMatch, type MatchTally } from "@/lib/scoring/scoring";
 import { groupLabel, stageLabel } from "@/lib/stages";
@@ -104,10 +105,10 @@ export default async function PartidoPage({
             {match.group ? groupLabel(match.group) : stageLabel(match.stage)}
           </span>
           <span className="flex items-center gap-2">
-            {(match.status === "in_play" || match.status === "paused") && (
+            {isLive(match, now) && (
               <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/60 dark:text-red-300">
                 <LiveDot />
-                {match.status === "in_play" ? "En vivo" : "Entretiempo"}
+                {liveLabel(match.status)}
               </span>
             )}
             {match.status === "finished" && (

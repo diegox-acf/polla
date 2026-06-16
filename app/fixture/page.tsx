@@ -7,6 +7,7 @@ import { LocalTime } from "@/components/local-time";
 import { Mascotas } from "@/components/mascotas";
 import { db } from "@/lib/db";
 import { matches, predictions, teams } from "@/lib/db/schema";
+import { isLive, liveLabel } from "@/lib/match-state";
 import { canPredict, isKnockoutStage } from "@/lib/predictions";
 import { groupLabel, stageLabel, stageShortLabel, stageSlug } from "@/lib/stages";
 import { PredictionForm } from "./prediction-form";
@@ -77,9 +78,9 @@ export default async function FixturePage({
   }
 
   // Sin filtro en la URL: aterriza en la fase "vigente" (próximo partido o en juego)
-  const isOngoing = (m: Match) => m.status === "in_play" || m.status === "paused";
+  const isOngoing = (m: Match) => isLive(m, now);
   const isUpcoming = (m: Match) =>
-    m.status === "scheduled" && m.kickoff.getTime() >= now.getTime();
+    m.status === "scheduled" && m.kickoff.getTime() > now.getTime();
   const isCurrent = (m: Match) => isOngoing(m) || isUpcoming(m);
   const defaultSlug =
     (sections.find((s) => s.matches.some(isCurrent)) ?? sections.at(-1))?.slug ?? null;
@@ -252,7 +253,7 @@ function MatchCard({
           )}
         </span>
         <span className="flex items-center gap-2">
-          <StatusBadge status={match.status} />
+          <StatusBadge status={match.status} live={isLive(match, now)} />
           <LocalTime iso={match.kickoff.toISOString()} />
         </span>
       </div>
@@ -361,12 +362,12 @@ const STATUS_BADGES: Partial<Record<Match["status"], { label: string; className:
   },
 };
 
-function StatusBadge({ status }: { status: Match["status"] }) {
-  if (status === "in_play" || status === "paused") {
+function StatusBadge({ status, live }: { status: Match["status"]; live: boolean }) {
+  if (live) {
     return (
       <span className="flex items-center gap-1.5 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700 dark:bg-red-900/60 dark:text-red-300">
         <LiveDot />
-        {status === "in_play" ? "En vivo" : "Entretiempo"}
+        {liveLabel(status)}
       </span>
     );
   }

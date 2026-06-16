@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
-import { and, eq, gte, inArray, lte } from "drizzle-orm";
+import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
 import Link from "next/link";
 import { signOutAction } from "@/app/actions";
 import { LiveDot } from "@/components/live-dot";
@@ -13,6 +13,7 @@ import { UserMenu } from "@/components/user-menu";
 import { getAccess } from "@/lib/access";
 import { db } from "@/lib/db";
 import { matches } from "@/lib/db/schema";
+import { isLive, LIVE_WINDOW_MS } from "@/lib/match-state";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
 import "./globals.css";
 
@@ -35,7 +36,12 @@ export const metadata: Metadata = {
 const SOON_MS = 30 * 60 * 1000;
 function liveWindow() {
   const now = new Date();
-  return { now, soon: new Date(now.getTime() + SOON_MS) };
+  return {
+    now,
+    soon: new Date(now.getTime() + SOON_MS),
+    // Piso para "ya arrancó pero la API aún no confirma" (ver lib/match-state).
+    liveFloor: new Date(now.getTime() - LIVE_WINDOW_MS),
+  };
 }
 
 export default async function RootLayout({
@@ -47,18 +53,29 @@ export default async function RootLayout({
   // Logueado pero sin aprobar: ve solo la pantalla de espera, nada de la app.
   const pending = !!session?.user && !approved;
 
-  // Partidos en vivo para el indicador global del header
+  const { now, soon, liveFloor } = liveWindow();
+
+  // Partidos en vivo para el indicador global del header. Incluye los que ya
+  // arrancaron aunque la API siga diciendo "scheduled" (ver lib/match-state).
   const liveMatches = approved
-    ? await db.query.matches.findMany({
-        where: inArray(matches.status, ["in_play", "paused"]),
-        columns: { id: true },
-      })
+    ? (
+        await db.query.matches.findMany({
+          where: or(
+            inArray(matches.status, ["in_play", "paused"]),
+            and(
+              eq(matches.status, "scheduled"),
+              gte(matches.kickoff, liveFloor),
+              lte(matches.kickoff, now),
+            ),
+          ),
+          columns: { id: true, status: true, kickoff: true },
+        })
+      ).filter((m) => isLive(m, now))
     : [];
   const liveHref = liveMatches.length === 1 ? `/partido/${liveMatches[0].id}` : "/fixture";
 
   // ¿Hay un partido por empezar pronto? Así la página empieza a autorrefrescarse
   // poco antes del pitazo y "descubre" el cambio a en vivo, no solo después.
-  const { now, soon } = liveWindow();
   const imminent = approved
     ? await db.query.matches.findMany({
         where: and(
