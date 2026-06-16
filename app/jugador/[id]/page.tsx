@@ -173,7 +173,7 @@ export default async function JugadorPage({
                   <TeamSide team={away} />
                 </Link>
 
-                <div className="mt-3 flex items-center justify-between gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <div className="mt-3 flex items-center justify-center gap-3 border-t border-zinc-100 pt-3 dark:border-zinc-800">
                   {pred ? (
                     <span className="text-sm text-zinc-600 dark:text-zinc-300">
                       Pronóstico:{" "}
