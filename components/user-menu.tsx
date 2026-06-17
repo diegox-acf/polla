@@ -2,6 +2,7 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 interface Props {
   name?: string | null;
@@ -68,10 +69,11 @@ export function UserMenu({ name, email, image, signOutAction }: Props) {
               <p className="truncate text-sm font-semibold">{name ?? "Jugador"}</p>
               {email && <p className="truncate text-xs text-zinc-400">{email}</p>}
             </div>
+            <ThemeSwitcher />
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/50"
+                className="w-full border-t border-zinc-100 px-4 py-2.5 text-left text-sm font-medium text-red-600 transition-colors hover:bg-red-50 dark:border-zinc-800 dark:text-red-400 dark:hover:bg-red-950/50"
               >
                 Cerrar sesión
               </button>
