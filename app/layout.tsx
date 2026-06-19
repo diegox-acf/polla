@@ -4,7 +4,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { and, eq, gte, inArray, lte, or } from "drizzle-orm";
 import Link from "next/link";
-import Script from "next/script";
 import { signOutAction } from "@/app/actions";
 import { LiveDot } from "@/components/live-dot";
 import { LiveRefresher } from "@/components/live-refresher";
@@ -97,10 +96,16 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      {/* Antes del pintado: aplica el tema guardado para evitar el flash claro→oscuro */}
-      <Script id="theme-init" strategy="beforeInteractive">
-        {`(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`}
-      </Script>
+      <head>
+        {/* Script en línea síncrono: corre mientras el navegador parsea el HTML,
+            antes del primer pintado, así no hay flash claro→oscuro. No usar
+            next/script: su ejecución no bloquea el pintado (ver docs Next). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('theme');var d=t==='dark'||((!t||t==='system')&&window.matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.classList.add('dark');}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className="min-h-full flex flex-col">
         <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-background/80 backdrop-blur dark:border-zinc-800/70">
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-2.5">
