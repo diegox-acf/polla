@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
-import { applyTheme, getStoredTheme, setTheme, type Theme } from "@/lib/theme";
+import { useSyncExternalStore } from "react";
+import { getStoredTheme, setTheme, type Theme } from "@/lib/theme";
 
 const OPTIONS: { value: Theme; label: string; icon: string }[] = [
   { value: "light", label: "Claro", icon: "☀️" },
@@ -23,15 +23,8 @@ function subscribe(onChange: () => void) {
 export function ThemeSwitcher() {
   const theme = useSyncExternalStore(subscribe, getStoredTheme, () => "system");
 
-  // En modo "Sistema", seguir los cambios de preferencia del SO en vivo.
-  useEffect(() => {
-    if (theme !== "system") return;
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => applyTheme("system");
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, [theme]);
-
+  // El seguimiento en vivo de la preferencia del SO vive en <ThemeSync>, que
+  // está siempre montado (este selector solo existe con el menú abierto).
   function choose(value: Theme) {
     setTheme(value);
     window.dispatchEvent(new Event("theme-change"));

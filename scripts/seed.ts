@@ -17,11 +17,15 @@ import {
 
 async function seedAdmin() {
   const email = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (!email) throw new Error("ADMIN_EMAIL no está definido (ver .env.example)");
+  if (!email)
+    throw new Error("ADMIN_EMAIL no está definido (ver .env.example)");
   await db
     .insert(players)
     .values({ email, role: "admin", approved: true })
-    .onConflictDoUpdate({ target: players.email, set: { role: "admin", approved: true } });
+    .onConflictDoUpdate({
+      target: players.email,
+      set: { role: "admin", approved: true },
+    });
   console.log(`✔ admin: ${email}`);
 }
 
@@ -55,7 +59,10 @@ async function main() {
   await seedSettings();
 
   console.log("Descargando fixture del Mundial desde football-data.org...");
-  const [apiTeams, apiMatches] = [await fetchWorldCupTeams(), await fetchWorldCupMatches()];
+  const [apiTeams, apiMatches] = [
+    await fetchWorldCupTeams(),
+    await fetchWorldCupMatches(),
+  ];
 
   const rows = teamRows(apiTeams, apiMatches);
   if (rows.length > 0) {
