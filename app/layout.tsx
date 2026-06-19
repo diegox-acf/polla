@@ -10,6 +10,7 @@ import { LiveRefresher } from "@/components/live-refresher";
 import { MobileNav } from "@/components/mobile-nav";
 import { NavLink } from "@/components/nav-link";
 import { PendingApproval } from "@/components/pending-approval";
+import { ThemeSync } from "@/components/theme-sync";
 import { UserMenu } from "@/components/user-menu";
 import { getAccess } from "@/lib/access";
 import { db } from "@/lib/db";
@@ -73,7 +74,8 @@ export default async function RootLayout({
         })
       ).filter((m) => isLive(m, now))
     : [];
-  const liveHref = liveMatches.length === 1 ? `/partido/${liveMatches[0].id}` : "/fixture";
+  const liveHref =
+    liveMatches.length === 1 ? `/partido/${liveMatches[0].id}` : "/fixture";
 
   // ¿Hay un partido por empezar pronto? Así la página empieza a autorrefrescarse
   // poco antes del pitazo y "descubre" el cambio a en vivo, no solo después.
@@ -107,20 +109,26 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <ThemeSync />
         <header className="sticky top-0 z-10 border-b border-zinc-200/70 bg-background/80 backdrop-blur dark:border-zinc-800/70">
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-1.5">
-              {approved && <MobileNav isAdmin={session?.user.role === "admin"} />}
-              <Link href="/" className="flex min-w-0 items-center gap-2 font-bold tracking-tight">
-              {/* eslint-disable-next-line @next/next/no-img-element -- emblema remoto de football-data, tamaño fijo */}
-              <img
-                src={WORLD_CUP_EMBLEM}
-                alt="Mundial 2026"
-                width={32}
-                height={32}
-                className="h-8 w-auto shrink-0 drop-shadow-sm"
-              />
-              <span className="truncate">Polla 2026</span>
+              {approved && (
+                <MobileNav isAdmin={session?.user.role === "admin"} />
+              )}
+              <Link
+                href="/"
+                className="flex min-w-0 items-center gap-2 font-bold tracking-tight"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element -- emblema remoto de football-data, tamaño fijo */}
+                <img
+                  src={WORLD_CUP_EMBLEM}
+                  alt="Mundial 2026"
+                  width={32}
+                  height={32}
+                  className="h-8 w-auto shrink-0 drop-shadow-sm"
+                />
+                <span className="truncate">Polla 2026</span>
               </Link>
             </div>
             {session?.user && (
@@ -137,12 +145,14 @@ export default async function RootLayout({
                   >
                     <LiveDot />
                     EN VIVO
-                    {liveMatches.length > 1 && <span>({liveMatches.length})</span>}
+                    {liveMatches.length > 1 && (
+                      <span>({liveMatches.length})</span>
+                    )}
                   </Link>
                 )}
                 {/* Links solo en desktop; en móvil manda el menú hamburguesa */}
                 {approved && (
-                  <nav className="hidden items-center gap-2 sm:flex">
+                  <nav className="hidden items-center gap-1 sm:flex">
                     <NavLink href="/fixture">Fixture</NavLink>
                     <NavLink href="/grupos">Grupos</NavLink>
                     <NavLink href="/equipos">Equipos</NavLink>
@@ -150,7 +160,9 @@ export default async function RootLayout({
                     <NavLink href="/bonus">Bonus</NavLink>
                     <NavLink href="/pozo">Pozo</NavLink>
                     <NavLink href="/reglas">Reglas</NavLink>
-                    {session.user.role === "admin" && <NavLink href="/admin">Admin</NavLink>}
+                    {session.user.role === "admin" && (
+                      <NavLink href="/admin">Admin</NavLink>
+                    )}
                   </nav>
                 )}
                 <UserMenu
