@@ -1,12 +1,13 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { Laptop, MoonStar, SunMedium, type LucideIcon } from "lucide-react";
 import { getStoredTheme, setTheme, type Theme } from "@/lib/theme";
 
-const OPTIONS: { value: Theme; label: string; icon: string }[] = [
-  { value: "light", label: "Claro", icon: "☀️" },
-  { value: "dark", label: "Oscuro", icon: "🌙" },
-  { value: "system", label: "Sistema", icon: "🖥️" },
+const OPTIONS: { value: Theme; label: string; Icon: LucideIcon }[] = [
+  { value: "light", label: "Claro", Icon: SunMedium },
+  { value: "dark", label: "Oscuro", Icon: MoonStar },
+  { value: "system", label: "Sistema", Icon: Laptop },
 ];
 
 // Store externo: la fuente de verdad es localStorage. Re-renderizamos al
@@ -48,9 +49,7 @@ export function ThemeSwitcher() {
                   : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
               }`}
             >
-              <span aria-hidden className="text-sm">
-                {opt.icon}
-              </span>
+              <opt.Icon aria-hidden className="size-4" strokeWidth={1.75} />
               {opt.label}
             </button>
           );
