@@ -44,12 +44,19 @@ export async function syncResults({ force = false } = {}): Promise<SyncSummary> 
 
   for (const apiMatch of apiMatches) {
     const s90 = score90(apiMatch.score);
+    const current = byId.get(apiMatch.id);
+
+    // football-data deja homeTeam/awayTeam en null mientras un cruce de
+    // eliminatorias no está sorteado, y a veces un slot ya resuelto vuelve a
+    // null entre syncs. No pisamos un equipo ya conocido con null: si lo
+    // hiciéramos, el cuadro perdería los clasificados que ya habían aparecido
+    // (se "borran" tras un sync). Solo avanzamos null→equipo o equipo→otro.
     const next = {
       stage: apiMatch.stage,
       group: apiMatch.group,
       matchday: apiMatch.matchday,
-      homeTeamId: apiMatch.homeTeam.id,
-      awayTeamId: apiMatch.awayTeam.id,
+      homeTeamId: apiMatch.homeTeam.id ?? current?.homeTeamId ?? null,
+      awayTeamId: apiMatch.awayTeam.id ?? current?.awayTeamId ?? null,
       kickoff: new Date(apiMatch.utcDate),
       status: mapStatus(apiMatch.status),
       homeScore90: s90.home,
@@ -57,7 +64,6 @@ export async function syncResults({ force = false } = {}): Promise<SyncSummary> 
       advancingTeamId: advancingTeamId(apiMatch),
     };
 
-    const current = byId.get(apiMatch.id);
     if (!current) {
       // Partido nuevo (no debería pasar tras el seed, pero el upsert es barato)
       await db.insert(matches).values({ id: apiMatch.id, ...next, updatedAt: new Date() });
