@@ -52,7 +52,7 @@ npm run dev            # http://localhost:3000
 
 ## Cómo funciona el acceso
 
-Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la tabla `players` (allowlist): el seed agrega a `ADMIN_EMAIL` como admin, y el admin invita al resto desde `/admin`.
+Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la tabla `players` (allowlist): el seed agrega a `ADMIN_EMAIL` (uno o varios emails separados por coma) como admin, y desde `/admin` se invita al resto y se promueve/degrada admins.
 
 ## Deploy a Vercel
 
@@ -66,7 +66,7 @@ Login exclusivamente con Google (Auth.js). Solo entran emails que estén en la t
 5. **Migrar y seedear producción** (desde tu máquina, apuntando a Neon):
    ```bash
    DATABASE_URL=<neon> npm run db:migrate
-   DATABASE_URL=<neon> FOOTBALL_DATA_TOKEN=<token> ADMIN_EMAIL=<tu-email> npm run db:seed
+   DATABASE_URL=<neon> FOOTBALL_DATA_TOKEN=<token> ADMIN_EMAIL=<email1,email2,...> npm run db:seed
    ```
 6. **Cron**: el plan **Hobby solo permite crons diarios**, así que `vercel.json` programa
    `/api/cron/sync` una vez al día (06:00 UTC) como red de seguridad. Para resultados al día

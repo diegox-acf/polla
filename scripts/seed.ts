@@ -16,17 +16,25 @@ import {
 } from "../lib/football-data";
 
 async function seedAdmin() {
-  const email = process.env.ADMIN_EMAIL?.toLowerCase();
-  if (!email)
+  // ADMIN_EMAIL acepta uno o varios emails separados por coma.
+  const emails = [
+    ...new Set(
+      (process.env.ADMIN_EMAIL ?? "")
+        .split(",")
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  ];
+  if (emails.length === 0)
     throw new Error("ADMIN_EMAIL no está definido (ver .env.example)");
   await db
     .insert(players)
-    .values({ email, role: "admin", approved: true })
+    .values(emails.map((email) => ({ email, role: "admin" as const, approved: true })))
     .onConflictDoUpdate({
       target: players.email,
       set: { role: "admin", approved: true },
     });
-  console.log(`✔ admin: ${email}`);
+  console.log(`✔ admin: ${emails.join(", ")}`);
 }
 
 async function seedSettings() {
