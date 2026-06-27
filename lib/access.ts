@@ -12,17 +12,34 @@ export async function getAccess() {
   const session = await auth();
   const playerId = session?.user.playerId;
   if (typeof playerId !== "number") {
-    return { session, playerId: null as number | null, approved: false };
+    return { session, playerId: null as number | null, approved: false, isAdmin: false };
   }
   const row = await db.query.players.findFirst({
     where: eq(players.id, playerId),
-    columns: { approved: true },
+    columns: { approved: true, role: true },
   });
-  return { session, playerId, approved: row?.approved ?? false };
+  const isAdmin = row?.role === "admin";
+  return {
+    session,
+    playerId,
+    // Un admin siempre tiene acceso, aunque su flag approved no esté seteado.
+    approved: (row?.approved ?? false) || isAdmin,
+    isAdmin,
+  };
 }
 
 /** Devuelve el playerId solo si el jugador está aprobado; si no, null. Para server actions. */
 export async function approvedPlayerId(): Promise<number | null> {
   const { playerId, approved } = await getAccess();
   return approved ? playerId : null;
+}
+
+/**
+ * Devuelve el playerId solo si el jugador es admin; si no, null. Leído fresco de
+ * la BD (no del JWT), así un admin recién promovido manda de inmediato sin
+ * re-loguearse. Para server actions y gates de página.
+ */
+export async function requireAdmin(): Promise<number | null> {
+  const { playerId, isAdmin } = await getAccess();
+  return isAdmin ? playerId : null;
 }

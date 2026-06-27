@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { auth, signIn, signOut } from "@/auth";
+import { signIn, signOut } from "@/auth";
+import { getAccess } from "@/lib/access";
 import { WORLD_CUP_EMBLEM } from "@/lib/football-data";
 
 export default async function Home() {
-  const session = await auth();
+  const { session, isAdmin } = await getAccess();
 
   return (
     <main className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-16">
@@ -37,7 +38,7 @@ export default async function Home() {
             <span className="font-semibold">
               {session.user.name ?? session.user.email}
             </span>
-            {session.user.role === "admin" && (
+            {isAdmin && (
               <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-sm font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
                 admin
               </span>

@@ -1,7 +1,7 @@
 import { desc, lt } from "drizzle-orm";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
 import { LocalTime } from "@/components/local-time";
+import { getAccess } from "@/lib/access";
 import { db } from "@/lib/db";
 import { matches, predictionAudit, predictions } from "@/lib/db/schema";
 import { isKnockoutStage } from "@/lib/predictions";
@@ -10,6 +10,7 @@ import {
   removePlayer,
   toggleApproved,
   togglePaid,
+  toggleRole,
   toggleTopScorerCorrect,
   updateSettings,
 } from "./actions";
@@ -20,11 +21,11 @@ import { SyncButton } from "./sync-button";
 export const metadata = { title: "Admin — Polla Mundial 2026" };
 
 export default async function AdminPage() {
-  const session = await auth();
-  if (session?.user.role !== "admin" || typeof session.user.playerId !== "number") {
+  const { isAdmin, playerId } = await getAccess();
+  if (!isAdmin || playerId === null) {
     redirect("/");
   }
-  const myPlayerId = session.user.playerId;
+  const myPlayerId = playerId;
 
   const [allPlayers, allTeams, allPicks, settingsRow, playedMatches, predPlayers, auditPlayers] =
     await Promise.all([
@@ -87,10 +88,37 @@ export default async function AdminPage() {
                     )}
                     {player.role === "admin" && (
                       <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                        admin
+                        admin{player.id === myPlayerId ? " (tú)" : ""}
                       </span>
                     )}
                   </span>
+
+                  {/* Rol admin: no puedes degradarte a ti mismo (siempre queda ≥1 admin) */}
+                  {player.id !== myPlayerId && (
+                    <form action={toggleRole}>
+                      <input type="hidden" name="playerId" value={player.id} />
+                      <input
+                        type="hidden"
+                        name="role"
+                        value={player.role === "admin" ? "player" : "admin"}
+                      />
+                      <button
+                        type="submit"
+                        title={
+                          player.role === "admin"
+                            ? "Quitar permisos de admin"
+                            : "Dar permisos de admin (también aprueba el acceso)"
+                        }
+                        className={
+                          player.role === "admin"
+                            ? "rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/60 dark:text-amber-200"
+                            : "rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                        }
+                      >
+                        {player.role === "admin" ? "Quitar admin" : "Hacer admin"}
+                      </button>
+                    </form>
+                  )}
 
                   {/* Aprobación (registro abierto: el admin habilita el acceso) */}
                   {player.role !== "admin" && (

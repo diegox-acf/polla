@@ -51,7 +51,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { session, approved } = await getAccess();
+  const { session, approved, isAdmin } = await getAccess();
   // Logueado pero sin aprobar: ve solo la pantalla de espera, nada de la app.
   const pending = !!session?.user && !approved;
 
@@ -114,7 +114,7 @@ export default async function RootLayout({
           <div className="mx-auto flex w-full max-w-3xl items-center justify-between px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-1.5">
               {approved && (
-                <MobileNav isAdmin={session?.user.role === "admin"} />
+                <MobileNav isAdmin={isAdmin} />
               )}
               <Link
                 href="/"
@@ -160,9 +160,7 @@ export default async function RootLayout({
                     <NavLink href="/bonus">Bonus</NavLink>
                     <NavLink href="/pozo">Pozo</NavLink>
                     <NavLink href="/reglas">Reglas</NavLink>
-                    {session.user.role === "admin" && (
-                      <NavLink href="/admin">Admin</NavLink>
-                    )}
+                    {isAdmin && <NavLink href="/admin">Admin</NavLink>}
                   </nav>
                 )}
                 <UserMenu

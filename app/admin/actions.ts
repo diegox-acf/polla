@@ -3,19 +3,13 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/access";
 import { db } from "@/lib/db";
 import { bonusPicks, matches, players, resultAudit, settings } from "@/lib/db/schema";
 import { resolveAdvancingTeamId } from "@/lib/predictions";
 import { syncResults } from "@/lib/sync";
 
 export type AdminFormState = { ok: true; message?: string } | { ok: false; error: string } | null;
-
-async function requireAdmin(): Promise<number | null> {
-  const session = await auth();
-  if (session?.user.role !== "admin" || typeof session.user.playerId !== "number") return null;
-  return session.user.playerId;
-}
 
 // --- Allowlist ---
 
@@ -77,6 +71,33 @@ export async function removePlayer(formData: FormData): Promise<void> {
   } catch {
     return;
   }
+  revalidatePath("/admin");
+}
+
+// Promover / degradar admins. El rol se lee fresco de la BD en cada request
+// (ver lib/access), así el cambio aplica al instante sin re-login.
+export async function toggleRole(formData: FormData): Promise<void> {
+  const adminId = await requireAdmin();
+  if (adminId === null) return;
+
+  const parsed = z
+    .object({
+      playerId: z.coerce.number().int().positive(),
+      role: z.enum(["admin", "player"]),
+    })
+    .safeParse({ playerId: formData.get("playerId"), role: formData.get("role") });
+  // No te quites el admin a ti mismo: garantiza que siempre quede ≥1 admin
+  // (degradar a otro siempre te deja a ti como admin).
+  if (!parsed.success || parsed.data.playerId === adminId) return;
+
+  await db
+    .update(players)
+    .set(
+      parsed.data.role === "admin"
+        ? { role: "admin", approved: true } // un admin siempre tiene acceso
+        : { role: "player" },
+    )
+    .where(eq(players.id, parsed.data.playerId));
   revalidatePath("/admin");
 }
 
