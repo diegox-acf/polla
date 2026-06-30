@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { advancingTeamId, score90, type FdMatch, type FdScore } from "./football-data";
+import {
+  advancingTeamId,
+  penaltyScore,
+  score90,
+  type FdMatch,
+  type FdScore,
+} from "./football-data";
 
 const match = (stage: string, status: FdMatch["status"], score: FdScore): FdMatch => ({
   id: 1,
@@ -53,7 +59,50 @@ describe("advancingTeamId", () => {
     });
     expect(advancingTeamId(m)).toBe(759);
   });
+});
 
+describe("penaltyScore", () => {
+  it("deriva la tanda del fullTime cuando score.penalties viene mal (caso real 537415)", () => {
+    // football-data trae penalties 4-4 (empate imposible), pero el fullTime
+    // (4-5) ya incorpora la tanda: 4-5 menos el 1-1 reglamentario = 3-4.
+    const score: FdScore = {
+      winner: null,
+      duration: "PENALTY_SHOOTOUT",
+      fullTime: { home: 4, away: 5 },
+      halfTime: { home: 0, away: 1 },
+      regularTime: { home: 1, away: 1 },
+      extraTime: { home: 0, away: 0 },
+      penalties: { home: 4, away: 4 },
+    };
+    expect(penaltyScore(score)).toEqual({ home: 3, away: 4 });
+  });
+
+  it("usa score.penalties cuando el fullTime NO incluye la tanda (formato estándar)", () => {
+    // fullTime = empate tras alargue (1-1); la tanda está solo en penalties.
+    const score: FdScore = {
+      winner: "HOME_TEAM",
+      duration: "PENALTY_SHOOTOUT",
+      fullTime: { home: 1, away: 1 },
+      halfTime: { home: 0, away: 0 },
+      regularTime: { home: 1, away: 1 },
+      extraTime: { home: 0, away: 0 },
+      penalties: { home: 5, away: 4 },
+    };
+    expect(penaltyScore(score)).toEqual({ home: 5, away: 4 });
+  });
+
+  it("partido sin penales: null", () => {
+    const score: FdScore = {
+      winner: "AWAY_TEAM",
+      duration: "REGULAR",
+      fullTime: { home: 0, away: 1 },
+      halfTime: { home: 0, away: 0 },
+    };
+    expect(penaltyScore(score)).toBeNull();
+  });
+});
+
+describe("advancingTeamId — más casos", () => {
   it("fase de grupos: siempre null", () => {
     const m = match("GROUP_STAGE", "FINISHED", {
       winner: "HOME_TEAM",

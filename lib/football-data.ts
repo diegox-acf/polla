@@ -180,11 +180,24 @@ export function score90(score: FdScore): FdScoreSide {
 // Marcador de la tanda de penales, o null si el partido no se definió por
 // penales. Solo para mostrar en la UI (no cuenta para el puntaje).
 export function penaltyScore(score: FdScore): FdScoreSide | null {
-  if (
-    score.duration === "PENALTY_SHOOTOUT" &&
-    score.penalties?.home != null &&
-    score.penalties?.away != null
-  ) {
+  if (score.duration !== "PENALTY_SHOOTOUT") return null;
+
+  // El fullTime ya incorpora la tanda: si supera al marcador tras el alargue
+  // (90' + alargue), la tanda = fullTime − (90' + alargue). Esto es más
+  // confiable que score.penalties, que en estos datos a veces viene mal (p. ej.
+  // 4-4, un empate imposible en una tanda). Cuando el fullTime NO incluye la
+  // tanda (igual al resultado tras alargue), caemos a score.penalties.
+  const ft = score.fullTime;
+  const reg = score.regularTime;
+  if (ft?.home != null && ft?.away != null && reg?.home != null && reg?.away != null) {
+    const home = ft.home - reg.home - (score.extraTime?.home ?? 0);
+    const away = ft.away - reg.away - (score.extraTime?.away ?? 0);
+    if (home >= 0 && away >= 0 && home + away > 0) {
+      return { home, away };
+    }
+  }
+
+  if (score.penalties?.home != null && score.penalties?.away != null) {
     return score.penalties;
   }
   return null;
