@@ -54,17 +54,24 @@ export interface FdMatch {
 // `revalidateSeconds` cachea la respuesta en el data cache de Next (una sola
 // llamada real cada N segundos, compartida entre todos los usuarios) — clave
 // para el free tier de 10 req/min.
-async function fdFetch<T>(path: string, revalidateSeconds?: number): Promise<T> {
+async function fdFetch<T>(
+  path: string,
+  revalidateSeconds?: number,
+): Promise<T> {
   const token = process.env.FOOTBALL_DATA_TOKEN;
   if (!token) {
     throw new Error("FOOTBALL_DATA_TOKEN no está definido (ver .env.example)");
   }
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { "X-Auth-Token": token },
-    ...(revalidateSeconds !== undefined && { next: { revalidate: revalidateSeconds } }),
+    ...(revalidateSeconds !== undefined && {
+      next: { revalidate: revalidateSeconds },
+    }),
   });
   if (!res.ok) {
-    throw new Error(`football-data.org ${path} respondió ${res.status}: ${await res.text()}`);
+    throw new Error(
+      `football-data.org ${path} respondió ${res.status}: ${await res.text()}`,
+    );
   }
   return res.json() as Promise<T>;
 }
@@ -75,7 +82,9 @@ export async function fetchWorldCupTeams(): Promise<FdTeamRef[]> {
 }
 
 export async function fetchWorldCupMatches(): Promise<FdMatch[]> {
-  const data = await fdFetch<{ matches: FdMatch[] }>("/competitions/WC/matches");
+  const data = await fdFetch<{ matches: FdMatch[] }>(
+    "/competitions/WC/matches",
+  );
   return data.matches;
 }
 
@@ -175,6 +184,15 @@ export function advancingTeamId(match: FdMatch): number | null {
   if (match.status !== "FINISHED" && match.status !== "AWARDED") return null;
   if (match.score.winner === "HOME_TEAM") return match.homeTeam.id;
   if (match.score.winner === "AWAY_TEAM") return match.awayTeam.id;
+  // Empate a los 90'/alargue resuelto por penales: football-data deja
+  // score.winner en null (o "DRAW") y solo desempata en score.penalties /
+  // score.fullTime (este último ya incorpora la tanda). Tomamos el primer
+  // marcador desempatado que encontremos: la tanda, y como respaldo el fullTime.
+  for (const side of [match.score.penalties, match.score.fullTime]) {
+    if (side?.home != null && side?.away != null && side.home !== side.away) {
+      return side.home > side.away ? match.homeTeam.id : match.awayTeam.id;
+    }
+  }
   return null;
 }
 
