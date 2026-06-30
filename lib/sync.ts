@@ -8,6 +8,7 @@ import {
   advancingTeamId,
   fetchWorldCupMatches,
   mapStatus,
+  penaltyScore,
   score90,
 } from "@/lib/football-data";
 
@@ -22,7 +23,9 @@ export interface SyncSummary {
 // Solo llama a la API en ventanas de partido (free tier: 10 req/min, y el
 // workflow lo dispara cada ~10 min). `force` salta el guard — para el botón
 // manual del admin.
-export async function syncResults({ force = false } = {}): Promise<SyncSummary> {
+export async function syncResults({
+  force = false,
+} = {}): Promise<SyncSummary> {
   const existing = await db.query.matches.findMany();
   const now = Date.now();
 
@@ -37,13 +40,14 @@ export async function syncResults({ force = false } = {}): Promise<SyncSummary> 
   if (!hasActiveWindow && !force) {
     return { skipped: true, checked: 0, updated: 0 };
   }
-
   const apiMatches = await fetchWorldCupMatches();
+
   const byId = new Map(existing.map((m) => [m.id, m]));
   let updated = 0;
 
   for (const apiMatch of apiMatches) {
     const s90 = score90(apiMatch.score);
+    const pens = penaltyScore(apiMatch.score);
     const current = byId.get(apiMatch.id);
 
     // football-data deja homeTeam/awayTeam en null mientras un cruce de
@@ -62,11 +66,15 @@ export async function syncResults({ force = false } = {}): Promise<SyncSummary> 
       homeScore90: s90.home,
       awayScore90: s90.away,
       advancingTeamId: advancingTeamId(apiMatch),
+      homePenalties: pens?.home ?? null,
+      awayPenalties: pens?.away ?? null,
     };
 
     if (!current) {
       // Partido nuevo (no debería pasar tras el seed, pero el upsert es barato)
-      await db.insert(matches).values({ id: apiMatch.id, ...next, updatedAt: new Date() });
+      await db
+        .insert(matches)
+        .values({ id: apiMatch.id, ...next, updatedAt: new Date() });
       updated++;
       continue;
     }
@@ -81,7 +89,9 @@ export async function syncResults({ force = false } = {}): Promise<SyncSummary> 
       current.status !== next.status ||
       current.homeScore90 !== next.homeScore90 ||
       current.awayScore90 !== next.awayScore90 ||
-      current.advancingTeamId !== next.advancingTeamId;
+      current.advancingTeamId !== next.advancingTeamId ||
+      current.homePenalties !== next.homePenalties ||
+      current.awayPenalties !== next.awayPenalties;
     if (!changed) continue;
 
     const resultChanged =

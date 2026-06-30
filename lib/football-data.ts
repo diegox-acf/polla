@@ -177,6 +177,19 @@ export function score90(score: FdScore): FdScoreSide {
   return score.fullTime;
 }
 
+// Marcador de la tanda de penales, o null si el partido no se definió por
+// penales. Solo para mostrar en la UI (no cuenta para el puntaje).
+export function penaltyScore(score: FdScore): FdScoreSide | null {
+  if (
+    score.duration === "PENALTY_SHOOTOUT" &&
+    score.penalties?.home != null &&
+    score.penalties?.away != null
+  ) {
+    return score.penalties;
+  }
+  return null;
+}
+
 // Quién clasifica en eliminatorias (sí considera alargue/penales). null en
 // fase de grupos o partidos no terminados.
 export function advancingTeamId(match: FdMatch): number | null {

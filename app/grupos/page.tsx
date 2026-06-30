@@ -39,7 +39,12 @@ export default async function GruposPage() {
   for (const match of koMatches) {
     const existing = rounds.find((r) => r.stage === match.stage);
     if (existing) existing.matches.push(match);
-    else rounds.push({ stage: match.stage, label: stageShortLabel(match.stage), matches: [match] });
+    else
+      rounds.push({
+        stage: match.stage,
+        label: stageShortLabel(match.stage),
+        matches: [match],
+      });
   }
   const thirdPlace = rounds.find((r) => r.stage === "THIRD_PLACE")?.matches[0];
   const bracketRounds = rounds.filter((r) => r.stage !== "THIRD_PLACE");
@@ -55,7 +60,9 @@ export default async function GruposPage() {
     const used = new Set<number>();
     const slots: (Match | null)[] = [];
     for (const target of targets) {
-      const teamIds = [target.homeTeamId, target.awayTeamId].filter((x): x is number => x !== null);
+      const teamIds = [target.homeTeamId, target.awayTeamId].filter(
+        (x): x is number => x !== null,
+      );
       const feeders = prev
         .filter(
           (p) =>
@@ -68,7 +75,9 @@ export default async function GruposPage() {
       slots.push(feeders[0] ?? null, feeders[1] ?? null);
     }
     const remaining = prev.filter((p) => !used.has(p.id));
-    bracketRounds[i - 1].matches = slots.map((slot) => slot ?? remaining.shift()!);
+    bracketRounds[i - 1].matches = slots.map(
+      (slot) => slot ?? remaining.shift()!,
+    );
   }
 
   // fetchWorldCupStandings ya filtra a tablas TOTAL con grupo
@@ -78,15 +87,17 @@ export default async function GruposPage() {
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8">
       <h1 className="text-3xl font-extrabold tracking-tight">Grupos</h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Tablas reales del torneo, directo de football-data.org (se actualizan cada ~10 min).
-        Útiles para afinar los pronósticos de las próximas jornadas.
+        Tablas reales del torneo, directo de football-data.org (se actualizan
+        cada ~10 min). Útiles para afinar los pronósticos de las próximas
+        jornadas.
       </p>
 
       {groups.length === 0 && (
         <div className="mt-8 flex flex-col items-center gap-4 text-center">
           <Mascotas className="h-28 w-auto" />
           <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-            No se pudieron cargar las tablas en este momento. Intenta de nuevo en unos minutos.
+            No se pudieron cargar las tablas en este momento. Intenta de nuevo
+            en unos minutos.
           </p>
         </div>
       )}
@@ -103,14 +114,25 @@ export default async function GruposPage() {
             <table className="w-full text-xs">
               <thead>
                 <tr className="text-zinc-400">
-                  <th className="py-1.5 pl-4 pr-2 text-left font-medium">Equipo</th>
-                  <th className="px-1.5 py-1.5 text-right font-medium" title="Partidos jugados">
+                  <th className="py-1.5 pl-4 pr-2 text-left font-medium">
+                    Equipo
+                  </th>
+                  <th
+                    className="px-1.5 py-1.5 text-right font-medium"
+                    title="Partidos jugados"
+                  >
                     PJ
                   </th>
-                  <th className="px-1.5 py-1.5 text-right font-medium" title="Diferencia de gol">
+                  <th
+                    className="px-1.5 py-1.5 text-right font-medium"
+                    title="Diferencia de gol"
+                  >
                     DG
                   </th>
-                  <th className="py-1.5 pl-1.5 pr-4 text-right font-medium" title="Puntos">
+                  <th
+                    className="py-1.5 pl-1.5 pr-4 text-right font-medium"
+                    title="Puntos"
+                  >
                     Pts
                   </th>
                 </tr>
@@ -121,7 +143,9 @@ export default async function GruposPage() {
                     key={row.team.id ?? row.position}
                     className={`border-t border-zinc-100 dark:border-zinc-800 ${
                       // Top 2 clasifican directo (y algunos terceros — se marcan suave)
-                      row.position <= 2 ? "bg-emerald-50/50 dark:bg-emerald-950/20" : ""
+                      row.position <= 2
+                        ? "bg-emerald-50/50 dark:bg-emerald-950/20"
+                        : ""
                     }`}
                   >
                     <td className="py-2 pl-4 pr-2">
@@ -131,7 +155,12 @@ export default async function GruposPage() {
                         </span>
                         {row.team.crest && (
                           // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
-                          <img src={row.team.crest} alt="" width={16} height={16} />
+                          <img
+                            src={row.team.crest}
+                            alt=""
+                            width={16}
+                            height={16}
+                          />
                         )}
                         {row.team.id !== null ? (
                           <Link
@@ -145,9 +174,13 @@ export default async function GruposPage() {
                         )}
                       </span>
                     </td>
-                    <td className="px-1.5 py-2 text-right tabular-nums">{row.playedGames}</td>
                     <td className="px-1.5 py-2 text-right tabular-nums">
-                      {row.goalDifference > 0 ? `+${row.goalDifference}` : row.goalDifference}
+                      {row.playedGames}
+                    </td>
+                    <td className="px-1.5 py-2 text-right tabular-nums">
+                      {row.goalDifference > 0
+                        ? `+${row.goalDifference}`
+                        : row.goalDifference}
                     </td>
                     <td className="py-2 pl-1.5 pr-4 text-right font-bold tabular-nums">
                       {row.points}
@@ -162,7 +195,8 @@ export default async function GruposPage() {
 
       {groups.length > 0 && (
         <p className="mt-3 text-xs text-zinc-400">
-          Sombreado = puestos de clasificación directa (los mejores terceros también avanzan).
+          Sombreado = puestos de clasificación directa (los mejores terceros
+          también avanzan).
         </p>
       )}
 
@@ -190,7 +224,11 @@ export default async function GruposPage() {
                     </p>
                     {isFinal ? (
                       <div className="flex flex-1 flex-col justify-center">
-                        <BracketCard match={round.matches[0]} teamById={teamById} incoming />
+                        <BracketCard
+                          match={round.matches[0]}
+                          teamById={teamById}
+                          incoming
+                        />
                       </div>
                     ) : (
                       <div className="flex flex-1 flex-col">
@@ -233,7 +271,8 @@ export default async function GruposPage() {
             </div>
           </div>
           <p className="mt-2 text-xs text-zinc-400">
-            Los cruces se completan a medida que avanza el torneo. Toca un partido para verlo.
+            Los cruces se completan a medida que avanza el torneo. Toca un
+            partido para verlo.
           </p>
         </section>
       )}
@@ -252,8 +291,10 @@ function BracketCard({
   incoming?: boolean;
   outgoing?: boolean;
 }) {
-  const home = match.homeTeamId !== null ? teamById.get(match.homeTeamId) : undefined;
-  const away = match.awayTeamId !== null ? teamById.get(match.awayTeamId) : undefined;
+  const home =
+    match.homeTeamId !== null ? teamById.get(match.homeTeamId) : undefined;
+  const away =
+    match.awayTeamId !== null ? teamById.get(match.awayTeamId) : undefined;
   return (
     <div className="relative py-1">
       {incoming && (
@@ -278,11 +319,13 @@ function BracketCard({
         <BracketTeam
           team={home}
           score={match.homeScore90}
+          penalties={match.homePenalties}
           advancing={home !== undefined && match.advancingTeamId === home.id}
         />
         <BracketTeam
           team={away}
           score={match.awayScore90}
+          penalties={match.awayPenalties}
           advancing={away !== undefined && match.advancingTeamId === away.id}
         />
       </Link>
@@ -293,10 +336,12 @@ function BracketCard({
 function BracketTeam({
   team,
   score,
+  penalties,
   advancing,
 }: {
   team?: Team;
   score: number | null;
+  penalties?: number | null;
   advancing: boolean;
 }) {
   return (
@@ -307,13 +352,30 @@ function BracketTeam({
     >
       {team?.crest && (
         // eslint-disable-next-line @next/next/no-img-element -- crest remoto de football-data, tamaño fijo
-        <img src={team.crest} alt="" width={14} height={14} className="shrink-0" />
+        <img
+          src={team.crest}
+          alt=""
+          width={14}
+          height={14}
+          className="shrink-0"
+        />
       )}
       <span className="min-w-0 flex-1 truncate">
         {team ? (team.shortName ?? team.name) : "Por definir"}
       </span>
-      {score !== null && <span className="font-semibold tabular-nums">{score}</span>}
-      {advancing && <span className="text-emerald-600 dark:text-emerald-400">✓</span>}
+      {score !== null && (
+        <span className="font-semibold tabular-nums">
+          {score}
+          {penalties != null && (
+            <span className="ml-0.5 align-super text-[0.65em] font-semibold text-zinc-500 dark:text-zinc-400">
+              ({penalties})
+            </span>
+          )}
+        </span>
+      )}
+      {advancing && (
+        <span className="text-emerald-600 dark:text-emerald-400">✓</span>
+      )}
     </p>
   );
 }

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
+import { MatchScore } from "@/components/match-score";
 import { db } from "@/lib/db";
 import { matches, players, predictions, teams } from "@/lib/db/schema";
 import { isLive, liveLabel } from "@/lib/match-state";
@@ -124,9 +125,13 @@ export default async function PartidoPage({
           <BigTeam team={home} align="right" />
           <div className="text-center">
             {hasScore ? (
-              <span className="text-4xl font-extrabold tabular-nums">
-                {match.homeScore90} – {match.awayScore90}
-              </span>
+              <MatchScore
+                home90={match.homeScore90!}
+                away90={match.awayScore90!}
+                homePenalties={match.homePenalties}
+                awayPenalties={match.awayPenalties}
+                className="text-4xl font-extrabold tabular-nums"
+              />
             ) : (
               <span className="text-sm font-medium uppercase text-zinc-400">vs</span>
             )}

@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { LiveDot } from "@/components/live-dot";
 import { LocalTime } from "@/components/local-time";
 import { Mascotas } from "@/components/mascotas";
+import { MatchScore } from "@/components/match-score";
 import { db } from "@/lib/db";
 import { matches, predictions, teams } from "@/lib/db/schema";
 import { isLive, liveLabel } from "@/lib/match-state";
@@ -266,9 +267,13 @@ function MatchCard({
         <TeamSide team={home} align="right" />
         <div className="min-w-16 text-center">
           {hasScore ? (
-            <span className="text-2xl font-extrabold tabular-nums">
-              {match.homeScore90} – {match.awayScore90}
-            </span>
+            <MatchScore
+              home90={match.homeScore90!}
+              away90={match.awayScore90!}
+              homePenalties={match.homePenalties}
+              awayPenalties={match.awayPenalties}
+              className="text-2xl font-extrabold tabular-nums"
+            />
           ) : (
             <span className="text-xs font-medium uppercase text-zinc-400">vs</span>
           )}

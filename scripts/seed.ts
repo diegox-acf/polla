@@ -10,6 +10,7 @@ import {
   fetchWorldCupMatches,
   fetchWorldCupTeams,
   mapStatus,
+  penaltyScore,
   score90,
   type FdMatch,
   type FdTeamRef,
@@ -91,6 +92,7 @@ async function main() {
 
   for (const m of apiMatches) {
     const s90 = score90(m.score);
+    const pens = penaltyScore(m.score);
     const row = {
       id: m.id,
       stage: m.stage,
@@ -103,6 +105,8 @@ async function main() {
       homeScore90: s90.home,
       awayScore90: s90.away,
       advancingTeamId: advancingTeamId(m),
+      homePenalties: pens?.home ?? null,
+      awayPenalties: pens?.away ?? null,
       updatedAt: new Date(),
     };
     await db

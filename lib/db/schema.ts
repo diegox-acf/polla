@@ -63,6 +63,10 @@ export const matches = pgTable("matches", {
   awayScore90: integer("away_score_90"),
   // solo eliminatorias: quién clasificó (sí considera alargue/penales)
   advancingTeamId: integer("advancing_team_id").references(() => teams.id),
+  // marcador de la tanda de penales (null si el partido no fue a penales).
+  // No afecta el puntaje (el marcador se evalúa a los 90'); es solo para mostrar.
+  homePenalties: integer("home_penalties"),
+  awayPenalties: integer("away_penalties"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
